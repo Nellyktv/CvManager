@@ -4,7 +4,7 @@ import { Outlet, useNavigate } from 'react-router';
 
 import useUserStore from '../../../store/UserStore';
 import { api } from '../../../api/axios.api';
-import { LOGIN_ROUTE } from '../../../shared/utils/constsLinks';
+import { LOGIN_ROUTE } from '../../utils/constsLinks';
 import { DRAWER_WIDTH } from './AppLayout.constants';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';

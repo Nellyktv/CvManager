@@ -16,7 +16,7 @@ import {
   ADMIN_ROUTE,
   SEARCH_ROUTE,
   SETTINGS_ROUTE,
-} from '../../../shared/utils/constsLinks';
+} from '../../utils/constsLinks';
 
 export const DRAWER_WIDTH = 240;
 
