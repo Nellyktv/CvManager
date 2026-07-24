@@ -31,8 +31,8 @@ const Attribute = sequelize.define('candidate_skills_container', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     name: { type: DataTypes.STRING, unique: true },
     description: { type: DataTypes.TEXT },
-    category: { type: DataTypes.STRING },
-    type: { type: DataTypes.STRING }
+    type: { type: DataTypes.STRING },
+    options: { type: DataTypes.STRING }
 });
 
 const CandidateSkills = sequelize.define('candidate_skills', {

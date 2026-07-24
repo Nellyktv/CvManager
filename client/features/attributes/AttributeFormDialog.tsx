@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
-import type { AttributeCategory, AttributeType } from './AttributesPage.constants';
+import type { AttributeType } from './AttributesPage.constants';
 
 type Props = {
   open: boolean;
@@ -22,9 +22,8 @@ type Props = {
   typeValue: string;
   typeOptions: AttributeType[];
   onTypeChange: (value: string) => void;
-  categoryValue: string;
-  categoryOptions: AttributeCategory[];
-  onCategoryChange: (value: string) => void;
+  optionsValue: string;
+  onOptionsChange: (value: string) => void;
   onClose: () => void;
   onSave: () => void;
 };
@@ -39,9 +38,8 @@ const AttributeFormDialog = ({
   typeValue,
   typeOptions,
   onTypeChange,
-  categoryValue,
-  categoryOptions,
-  onCategoryChange,
+  optionsValue,
+  onOptionsChange,
   onClose,
   onSave,
 }: Props) => {
@@ -69,19 +67,6 @@ const AttributeFormDialog = ({
 
           <TextField
             select
-            label={t('attributes.fieldCategory')}
-            value={categoryValue}
-            onChange={(e) => onCategoryChange(e.target.value)}
-          >
-            {categoryOptions.map((el) => (
-              <MenuItem key={el} value={el}>
-                {t(`attributes.category${el}`)}
-              </MenuItem>
-            ))}
-          </TextField>
-
-          <TextField
-            select
             label={t('attributes.fieldType')}
             value={typeValue}
             onChange={(e) => onTypeChange(e.target.value)}
@@ -92,6 +77,15 @@ const AttributeFormDialog = ({
               </MenuItem>
             ))}
           </TextField>
+
+          {typeValue === 'Dropdown' && (
+            <TextField
+              label={t('attributes.fieldOptions')}
+              helperText={t('attributes.fieldOptionsHint')}
+              value={optionsValue}
+              onChange={(e) => onOptionsChange(e.target.value)}
+            />
+          )}
         </Stack>
       </DialogContent>
 

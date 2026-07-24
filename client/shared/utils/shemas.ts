@@ -28,3 +28,13 @@ export const FormSchemaLogin = z.object({
 });
 
 export type LoginFormFields = z.infer<typeof FormSchemaLogin>;
+
+export const ChangePasswordSchema = z
+  .object({
+    newPassword: confirmPasswordSchema,
+    confirmPassword: confirmPasswordSchema,
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    path: ['confirmPassword'],
+    message: 'Пароли не совпадают',
+  });

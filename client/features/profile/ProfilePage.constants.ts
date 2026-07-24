@@ -1,5 +1,5 @@
 import type { UserRole } from '../../store/UserStore';
-import type { AttributeCategory, AttributeType } from '../attributes/AttributesPage.constants';
+import type { AttributeType } from '../attributes/AttributesPage.constants';
 
 export type Profile = {
   firstName: string;
@@ -23,7 +23,6 @@ export type Cv = {
 export type AttributeItem = {
   id: number;
   name: string;
-  category: AttributeCategory;
   type: AttributeType;
 };
 

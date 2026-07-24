@@ -75,8 +75,9 @@ const getCv = async (req, res) => {
         return {
             id: attribute.id,
             name: attribute.name,
-            category: attribute.category,
+            description: attribute.description,
             type: attribute.type,
+            options: attribute.options,
             value: skill ? skill.value : null,
         };
     });

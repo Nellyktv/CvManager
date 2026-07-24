@@ -1,31 +1,25 @@
 export type Attribute = {
   id: number;
-  category: AttributeCategory;
   name: string;
   type: AttributeType;
   description: string;
+  options: string | null;
 };
 
-export const initialForm = {
+export type AttributeFormValues = {
+  name: string;
+  description: string;
+  type: string;
+  options: string;
+};
+
+export const initialForm: AttributeFormValues = {
   name: '',
   description: '',
-  category: '',
   type: '',
+  options: '',
 };
 
 export type AttributeType = 'Boolean' | 'Numeric' | 'Text' | 'Date' | 'Dropdown';
 
 export const typeOptions: AttributeType[] = ['Boolean', 'Numeric', 'Text', 'Date', 'Dropdown'];
-
-export type AttributeCategory =
-  | 'Certification'
-  | 'DomainKnowledge'
-  | 'PersonalInformation'
-  | 'SoftSkills';
-
-export const categoryOptions: AttributeCategory[] = [
-  'Certification',
-  'DomainKnowledge',
-  'PersonalInformation',
-  'SoftSkills',
-];

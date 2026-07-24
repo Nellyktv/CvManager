@@ -2,7 +2,7 @@ import { ApiError } from '../errors/ApiError.js';
 import { Attribute } from '../models/models.js';
 
 const createAttribute = async (req, res) => {
-    const { name, description, category, type } = req.body;
+    const { name, description, type, options } = req.body;
 
     if (!name || !type) {
         throw ApiError.badRequest('Name and type are required');
@@ -21,8 +21,8 @@ const createAttribute = async (req, res) => {
     const attribute = await Attribute.create({
         name,
         description,
-        category,
         type,
+        options,
     });
 
     return res.json({ attribute });
@@ -52,7 +52,7 @@ const getAttribute = async (req, res) => {
 
 const updateAttribute = async (req, res) => {
     const { id } = req.params;
-    const { name, description, category, type } = req.body;
+    const { name, description, type, options } = req.body;
 
     const attribute = await Attribute.findByPk(id);
 
@@ -63,8 +63,8 @@ const updateAttribute = async (req, res) => {
     await attribute.update({
         name,
         description,
-        category,
         type,
+        options,
     });
 
     return res.json({

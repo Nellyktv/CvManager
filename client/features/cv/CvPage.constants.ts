@@ -1,4 +1,4 @@
-import type { AttributeCategory, AttributeType } from '../attributes/AttributesPage.constants';
+import type { AttributeType } from '../attributes/AttributesPage.constants';
 
 export type CvPosition = {
   id: number;
@@ -24,8 +24,9 @@ export type CvData = {
 export type CvAttribute = {
   id: number;
   name: string;
-  category: AttributeCategory;
+  description: string;
   type: AttributeType;
+  options: string | null;
   value: string | null;
 };
 

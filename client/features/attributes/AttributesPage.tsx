@@ -7,12 +7,7 @@ import CrudToolbar from '../../shared/components/toolbars/CrudToolbar';
 import { CANDIDAT_SKILLS_CONTAINER_ROUTER } from '../../shared/utils/constsLinks';
 import { useCrud } from '../../shared/hooks/useCrud';
 import { useDialogForm } from '../../shared/hooks/useDialogForm';
-import {
-  type Attribute,
-  initialForm,
-  typeOptions,
-  categoryOptions,
-} from './AttributesPage.constants';
+import { type Attribute, initialForm, typeOptions } from './AttributesPage.constants';
 import AttributeFormDialog from './AttributeFormDialog';
 
 const AttributesPage = () => {
@@ -20,17 +15,16 @@ const AttributesPage = () => {
 
   const columns: GridColDef<Attribute>[] = [
     {
-      field: 'category',
-      headerName: t('attributes.columnCategory'),
-      flex: 1,
-      minWidth: 150,
-      renderCell: (params) => t(`attributes.category${params.value}`),
-    },
-    {
       field: 'name',
       headerName: t('attributes.columnName'),
       flex: 1,
       minWidth: 150,
+    },
+    {
+      field: 'description',
+      headerName: t('attributes.columnDescription'),
+      flex: 2,
+      minWidth: 200,
     },
     {
       field: 'type',
@@ -38,6 +32,12 @@ const AttributesPage = () => {
       flex: 1,
       minWidth: 130,
       renderCell: (params) => t(`attributes.type${params.value}`),
+    },
+    {
+      field: 'options',
+      headerName: t('attributes.columnOptions'),
+      flex: 1,
+      minWidth: 180,
     },
   ];
 
@@ -55,8 +55,8 @@ const AttributesPage = () => {
     openEdit(attr.id, {
       name: attr.name,
       description: attr.description,
-      category: attr.category,
       type: attr.type,
+      options: attr.options || '',
     });
   };
 
@@ -126,9 +126,8 @@ const AttributesPage = () => {
         typeValue={form.type}
         typeOptions={typeOptions}
         onTypeChange={(value) => setForm({ ...form, type: value })}
-        categoryValue={form.category}
-        categoryOptions={categoryOptions}
-        onCategoryChange={(value) => setForm({ ...form, category: value })}
+        optionsValue={form.options}
+        onOptionsChange={(value) => setForm({ ...form, options: value })}
         onClose={closeDialog}
         onSave={handleSave}
       />

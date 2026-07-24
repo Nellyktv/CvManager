@@ -7,6 +7,9 @@ import {
   Chip,
   Skeleton,
   Button,
+  Checkbox,
+  FormControlLabel,
+  MenuItem,
 } from '@mui/material';
 import { useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
@@ -52,19 +55,21 @@ const CvPage = () => {
     );
   };
 
-  const saveValue = async (attributeId: number) => {
-    const attr = attributes.find((el) => el.id === attributeId);
+  const saveValue = async (attributeId: number, value: string) => {
     try {
-      await api.post('/skills', {
-        attributeId,
-        value: attr ? attr.value || '' : '',
-      });
+      await api.post('/skills', { attributeId, value });
     } catch (error) {
       console.error('Failed to save value', error);
       enqueueSnackbar(t('common.error'), { variant: 'error' });
     }
 
     setEditingId(null);
+  };
+
+  const toggleBoolean = (el: CvAttribute) => {
+    const newValue = el.value === 'true' ? 'false' : 'true';
+    changeValue(el.id, newValue);
+    saveValue(el.id, newValue);
   };
 
   if (!cv) {
@@ -125,27 +130,77 @@ const CvPage = () => {
               {t('cv.noAttributes')}
             </Typography>
           ) : (
-            <Stack direction="row" gap={1} flexWrap="wrap">
-              {attributes.map((el) =>
-                canEdit && editingId === el.id ? (
-                  <TextField
-                    key={el.id}
-                    autoFocus
-                    variant="standard"
-                    label={el.name}
-                    value={el.value || ''}
-                    onChange={(e) => changeValue(el.id, e.target.value)}
-                    onBlur={() => saveValue(el.id)}
-                  />
-                ) : (
+            <Stack direction="row" gap={1} flexWrap="wrap" alignItems="center">
+              {attributes.map((el) => {
+                if (el.type === 'Boolean') {
+                  return (
+                    <FormControlLabel
+                      key={el.id}
+                      label={el.name}
+                      control={
+                        <Checkbox
+                          checked={el.value === 'true'}
+                          disabled={!canEdit}
+                          onChange={() => toggleBoolean(el)}
+                        />
+                      }
+                    />
+                  );
+                }
+
+                if (canEdit && editingId === el.id && el.type === 'Dropdown') {
+                  const options = el.options ? el.options.split(',') : [];
+
+                  return (
+                    <TextField
+                      key={el.id}
+                      select
+                      autoFocus
+                      variant="standard"
+                      label={el.name}
+                      helperText={el.description}
+                      value={el.value || ''}
+                      onChange={(e) => changeValue(el.id, e.target.value)}
+                      onBlur={() => saveValue(el.id, el.value || '')}
+                    >
+                      {options.map((option) => (
+                        <MenuItem key={option} value={option.trim()}>
+                          {option.trim()}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  );
+                }
+
+                if (canEdit && editingId === el.id) {
+                  let inputType = 'text';
+                  if (el.type === 'Numeric') inputType = 'number';
+                  if (el.type === 'Date') inputType = 'date';
+
+                  return (
+                    <TextField
+                      key={el.id}
+                      autoFocus
+                      type={inputType}
+                      variant="standard"
+                      label={el.name}
+                      helperText={el.description}
+                      value={el.value || ''}
+                      onChange={(e) => changeValue(el.id, e.target.value)}
+                      onBlur={() => saveValue(el.id, el.value || '')}
+                    />
+                  );
+                }
+
+                return (
                   <Chip
                     key={el.id}
                     label={el.value ? `${el.name}: ${el.value}` : el.name}
                     variant={el.value ? 'filled' : 'outlined'}
                     onClick={canEdit ? () => setEditingId(el.id) : undefined}
                   />
-                )
-              )}
+                );
+              })}
             </Stack>
           )}
 

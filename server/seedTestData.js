@@ -3,7 +3,7 @@ import sequelize from './dB.js';
 import { User, Position, Cv } from './models/models.js';
 
 const run = async () => {
-    const recruiter = await User.findOne({ where: { role: 'RECRUITER' } });
+   const recruiter = await User.findOne({ where: { role: 'RECRUITER' } });
 
     const position1 = await Position.create({
         title: 'Frontend Developer',
