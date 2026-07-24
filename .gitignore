@@ -32,3 +32,6 @@ tz_ru.md
 
 # Claude Code settings
 .claude/
+
+# Local agent artifacts
+.superpowers/

@@ -44,7 +44,10 @@ const CandidateSkills = sequelize.define('candidate_skills', {
 const Cv = sequelize.define('cv', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     version: { type: DataTypes.INTEGER, defaultValue: 1 },
-    status: { type: DataTypes.STRING, defaultValue: 'draft' }
+    status: { type: DataTypes.STRING, defaultValue: 'draft' },
+    templateKey: { type: DataTypes.STRING, allowNull: true },
+    content: { type: DataTypes.JSONB, allowNull: true },
+    lastSyncedFromProfileAt: { type: DataTypes.DATE, allowNull: true },
 });
 
 
@@ -60,7 +63,36 @@ const Comment = sequelize.define('comment', {
 const Project = sequelize.define('project', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     title: { type: DataTypes.STRING },
-    description: { type: DataTypes.TEXT }
+    description: { type: DataTypes.TEXT },
+    role: { type: DataTypes.STRING, allowNull: true },
+    startDate: { type: DataTypes.DATEONLY, allowNull: true },
+    endDate: { type: DataTypes.DATEONLY, allowNull: true },
+    links: { type: DataTypes.JSONB, allowNull: true },
+    displayOrder: { type: DataTypes.INTEGER, allowNull: true },
+    descriptionMarkdown: { type: DataTypes.TEXT, allowNull: true },
+});
+
+const CandidateProfile = sequelize.define('candidate_profile', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    headline: { type: DataTypes.STRING, allowNull: true },
+    publicEmail: { type: DataTypes.STRING, allowNull: true },
+    phone: { type: DataTypes.STRING, allowNull: true },
+    location: { type: DataTypes.STRING, allowNull: true },
+    linkedinUrl: { type: DataTypes.STRING, allowNull: true },
+    githubUrl: { type: DataTypes.STRING, allowNull: true },
+    portfolioUrl: { type: DataTypes.STRING, allowNull: true },
+});
+
+const Education = sequelize.define('education', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    institution: { type: DataTypes.STRING, allowNull: true },
+    degree: { type: DataTypes.STRING, allowNull: true },
+    field: { type: DataTypes.STRING, allowNull: true },
+    location: { type: DataTypes.STRING, allowNull: true },
+    startDate: { type: DataTypes.DATEONLY, allowNull: true },
+    endDate: { type: DataTypes.DATEONLY, allowNull: true },
+    description: { type: DataTypes.TEXT, allowNull: true },
+    displayOrder: { type: DataTypes.INTEGER, allowNull: true },
 });
 
 User.hasMany(Position);
@@ -97,4 +129,22 @@ Comment.belongsTo(User);
 User.hasMany(Project);
 Project.belongsTo(User);
 
-export { User, Position, Attribute, Cv, CandidateSkills, PositionAttribute, PositionAccess, Comment, Project };
+User.hasOne(CandidateProfile, { foreignKey: { name: 'userId', unique: true } });
+CandidateProfile.belongsTo(User);
+
+User.hasMany(Education);
+Education.belongsTo(User);
+
+export {
+    User,
+    Position,
+    Attribute,
+    Cv,
+    CandidateSkills,
+    PositionAttribute,
+    PositionAccess,
+    Comment,
+    Project,
+    CandidateProfile,
+    Education,
+};

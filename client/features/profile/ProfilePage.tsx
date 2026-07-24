@@ -17,12 +17,32 @@ import { useState } from 'react';
 
 import useUserStore from '../../store/UserStore';
 import { useProfile } from './useProfile';
+import { useCandidateProfile } from './hooks/useCandidateProfile';
 import { useCrud } from '../../shared/hooks/useCrud';
 import { useDialogForm } from '../../shared/hooks/useDialogForm';
 import { PROJECT_ROUTE } from '../../shared/utils/constsLinks';
-import { type Project, initialProjectForm } from './ProfilePage.constants';
+import {
+  type Project,
+  type ProjectFormValues,
+  initialProjectForm,
+} from './ProfilePage.constants';
 import ProjectFormDialog from './ProjectFormDialog';
+import CandidateContactForm from './components/CandidateContactForm';
+import EducationSection from './components/EducationSection';
 import CrudToolbar from '../../shared/components/toolbars/CrudToolbar';
+
+const toProjectPayload = (form: ProjectFormValues) => ({
+  title: form.title.trim(),
+  role: form.role || undefined,
+  startDate: form.startDate || undefined,
+  endDate: form.endDate || undefined,
+  links: form.links.map((link) => ({
+    label: link.label.trim() || link.url.trim(),
+    url: link.url.trim(),
+  })),
+  descriptionMarkdown: form.descriptionMarkdown || undefined,
+  displayOrder: form.displayOrder === '' ? undefined : Number(form.displayOrder),
+});
 
 const ProfilePage = () => {
   const { t } = useTranslation();
@@ -50,7 +70,17 @@ const ProfilePage = () => {
   } = useProfile(profileId, isCandidateProfile);
 
   const {
+    profile: candidateProfile,
+    loading: loadingContacts,
+    saving: savingContacts,
+    error: contactsError,
+    saveProfile: saveCandidateProfile,
+  } = useCandidateProfile(isCandidateProfile);
+
+  const {
     items: projects,
+    isLoading: loadingProjects,
+    saving: savingProject,
     createItem: createProject,
     updateItem: updateProject,
     deleteItems: deleteProjects,
@@ -67,11 +97,13 @@ const ProfilePage = () => {
   } = useDialogForm(initialProjectForm);
 
   const handleSaveProject = async () => {
-    if (projectEditId) {
-      await updateProject(projectEditId, projectForm);
-    } else {
-      await createProject(projectForm);
-    }
+    const payload = toProjectPayload(projectForm);
+
+    const saved = projectEditId
+      ? await updateProject(projectEditId, payload)
+      : await createProject(payload);
+
+    if (!saved) return;
 
     closeProjectDialog();
   };
@@ -119,10 +151,17 @@ const ProfilePage = () => {
       minWidth: 160,
     },
     {
-      field: 'description',
+      field: 'role',
+      headerName: t('profile.projectRole'),
+      flex: 1,
+      minWidth: 140,
+    },
+    {
+      field: 'descriptionMarkdown',
       headerName: t('profile.projectDescription'),
       flex: 2,
       minWidth: 220,
+      valueGetter: (_, row) => row.descriptionMarkdown || row.description || '',
     },
   ];
 
@@ -133,7 +172,19 @@ const ProfilePage = () => {
 
     openEditProject(project.id, {
       title: project.title,
-      description: project.description,
+      role: project.role || '',
+      startDate: project.startDate || '',
+      endDate: project.endDate || '',
+      links: (project.links ?? []).map((link) => ({
+        label: link.label || '',
+        url: link.url || '',
+      })),
+      descriptionMarkdown:
+        project.descriptionMarkdown || project.description || '',
+      displayOrder:
+        project.displayOrder === null || project.displayOrder === undefined
+          ? ''
+          : String(project.displayOrder),
     });
   };
 
@@ -204,6 +255,25 @@ const ProfilePage = () => {
         </Stack>
       </Paper>
 
+      {isCandidateProfile &&
+        (loadingContacts ? (
+          <Paper sx={{ p: 3, m: 1, borderRadius: 3, maxWidth: 640 }}>
+            <Stack gap={2}>
+              <Skeleton variant="text" width={180} height={32} />
+              <Skeleton variant="rounded" height={56} />
+              <Skeleton variant="rounded" height={56} />
+              <Skeleton variant="rounded" height={56} />
+            </Stack>
+          </Paper>
+        ) : (
+          <CandidateContactForm
+            initialProfile={candidateProfile}
+            onSave={saveCandidateProfile}
+            saving={savingContacts}
+            errorMessage={contactsError}
+          />
+        ))}
+
       {isCandidateProfile && (
         <Paper sx={{ p: 3, m: 1, borderRadius: 3, maxWidth: 640 }}>
           <Typography variant="h6" gutterBottom>
@@ -234,6 +304,8 @@ const ProfilePage = () => {
         </Paper>
       )}
 
+      {isCandidateProfile && <EducationSection canEdit />}
+
       {isCandidateProfile && (
         <Paper sx={{ p: 3, m: 1, borderRadius: 3 }}>
           <Typography variant="h6" gutterBottom>
@@ -252,6 +324,7 @@ const ProfilePage = () => {
             <DataGrid
               rows={projects}
               columns={projectColumns}
+              loading={loadingProjects}
               checkboxSelection
               disableRowSelectionOnClick
               disableRowSelectionExcludeModel
@@ -275,12 +348,11 @@ const ProfilePage = () => {
       <ProjectFormDialog
         open={projectDialogOpen}
         editId={projectEditId}
-        titleValue={projectForm.title}
-        onTitleChange={(value) => setProjectForm({ ...projectForm, title: value })}
-        descriptionValue={projectForm.description}
-        onDescriptionChange={(value) => setProjectForm({ ...projectForm, description: value })}
+        form={projectForm}
+        onChange={setProjectForm}
         onClose={closeProjectDialog}
         onSave={handleSaveProject}
+        saving={savingProject}
       />
 
       <Paper sx={{ p: 3, m: 1, borderRadius: 3 }}>

@@ -1,252 +1,226 @@
-import { useEffect, useState } from 'react';
-import {
-  Paper,
-  Stack,
-  Typography,
-  TextField,
-  Chip,
-  Skeleton,
-  Button,
-  Checkbox,
-  FormControlLabel,
-  MenuItem,
-} from '@mui/material';
+import { useState } from 'react';
+import { Box, Skeleton, Stack, useMediaQuery, useTheme } from '@mui/material';
 import { useParams } from 'react-router';
-import { useTranslation } from 'react-i18next';
-import { useSnackbar } from 'notistack';
 
-import { api } from '../../api/axios.api';
-import useUserStore from '../../store/UserStore';
-import { type CvData, type CvAttribute, type CvProject } from './CvPage.constants';
+import type { CvSection } from '../../api/cv.api';
+import CvEditorPanel from './components/CvEditorPanel';
+import CvLoadError from './components/CvLoadError';
+import CvMobileTabs from './components/CvMobileTabs';
+import CvPreviewPanel from './components/CvPreviewPanel';
+import CvSectionRail from './components/CvSectionRail';
+import CvWorkspaceHeader from './components/CvWorkspaceHeader';
+import RefreshFromProfileDialog from './components/RefreshFromProfileDialog';
+import { useCvExport } from './hooks/useCvExport';
+import { useCvWorkspace } from './hooks/useCvWorkspace';
+import type { CvEditorSection, CvWorkspaceTab } from './CvPage.constants';
 
 const CvPage = () => {
-  const { t } = useTranslation();
-  const { enqueueSnackbar } = useSnackbar();
   const { id } = useParams();
-  const currentUser = useUserStore((state) => state.user);
+  const theme = useTheme();
+  const isMdUp = useMediaQuery(theme.breakpoints.up('md'));
+  const isLgUp = useMediaQuery(theme.breakpoints.up('lg'));
 
-  const [cv, setCv] = useState<CvData | null>(null);
-  const [attributes, setAttributes] = useState<CvAttribute[]>([]);
-  const [projects, setProjects] = useState<CvProject[]>([]);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const {
+    cv,
+    content,
+    templateKey,
+    loading,
+    error,
+    saveError,
+    actionError,
+    saving,
+    isSaved,
+    canEdit,
+    updateContent,
+    updateTemplate,
+    refresh,
+    publish,
+    reload,
+    retrySave,
+    retryAction,
+  } = useCvWorkspace(id);
 
-  useEffect(() => {
-    api
-      .get(`/cv/${id}`)
-      .then((response) => {
-        setCv(response.data.cv);
-        setAttributes(response.data.attributes);
-        setProjects(response.data.projects);
-      })
-      .catch((error) => {
-        console.error('Failed to load CV', error);
-      });
-  }, [id]);
+  const {
+    exportPdf,
+    status: pdfExportStatus,
+    error: pdfExportError,
+  } = useCvExport();
 
-  const canEdit =
-    cv !== null &&
-    (cv.userId === currentUser.id || currentUser.role === 'ADMIN');
+  const [mobileTab, setMobileTab] = useState<CvWorkspaceTab>('editor');
+  const [activeSection, setActiveSection] = useState<CvEditorSection>('contact');
+  const [refreshOpen, setRefreshOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const changeValue = (attributeId: number, value: string) => {
-    setAttributes(
-      attributes.map((el) =>
-        el.id === attributeId ? { ...el, value } : el
-      )
-    );
-  };
-
-  const saveValue = async (attributeId: number, value: string) => {
-    try {
-      await api.post('/skills', { attributeId, value });
-    } catch (error) {
-      console.error('Failed to save value', error);
-      enqueueSnackbar(t('common.error'), { variant: 'error' });
-    }
-
-    setEditingId(null);
-  };
-
-  const toggleBoolean = (el: CvAttribute) => {
-    const newValue = el.value === 'true' ? 'false' : 'true';
-    changeValue(el.id, newValue);
-    saveValue(el.id, newValue);
-  };
-
-  if (!cv) {
+  if (loading) {
     return (
-      <Stack gap={2} sx={{ m: 1, maxWidth: 640 }}>
-        <Skeleton variant="text" height={48} width="60%" />
-        <Skeleton variant="rounded" height={56} />
-        <Skeleton variant="rounded" height={56} />
-        <Skeleton variant="rounded" height={56} />
+      <Stack gap={2} sx={{ m: 1 }}>
+        <Skeleton variant="text" height={48} width="40%" />
+        <Skeleton variant="rounded" height={120} />
+        <Skeleton variant="rounded" height={360} />
       </Stack>
     );
   }
 
-  let allFilled = attributes.length > 0;
-  for (const el of attributes) {
-    if (!el.value) {
-      allFilled = false;
-    }
+  if (error && !cv) {
+    return <CvLoadError onRetry={() => void reload()} />;
   }
 
-  const handlePublish = async () => {
-    try {
-      await api.put(`/cv/${id}/publish`);
-      setCv({ ...cv, status: 'published' });
-      enqueueSnackbar(t('common.saved'), { variant: 'success' });
-    } catch (error) {
-      console.error('Failed to publish CV', error);
-      enqueueSnackbar(t('common.error'), { variant: 'error' });
-    }
+  if (!cv || !content) {
+    return <CvLoadError onRetry={() => void reload()} />;
+  }
+
+  const editor = (
+    <CvEditorPanel
+      content={content}
+      onChange={updateContent}
+      activeSection={activeSection}
+      disabled={!canEdit}
+    />
+  );
+
+  const preview = (
+    <CvPreviewPanel
+      templateKey={templateKey}
+      content={content}
+      highlightedSection={activeSection}
+    />
+  );
+
+  const handleRefreshConfirm = async (sections: CvSection[]) => {
+    setRefreshing(true);
+    const ok = await refresh(sections);
+    setRefreshing(false);
+    if (ok) setRefreshOpen(false);
   };
 
+  const rail = (orientation: 'vertical' | 'horizontal') => (
+    <CvSectionRail
+      value={activeSection}
+      onChange={setActiveSection}
+      content={content}
+      orientation={orientation}
+    />
+  );
+
   return (
-    <>
-      <Typography variant="h4" sx={{ m: 1 }}>
-        {cv.position.title}
-      </Typography>
+    <Box
+      data-testid="cv-page-shell"
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+        minHeight: 0,
+        minWidth: 0,
+        overflow: { md: 'hidden' },
+      }}
+    >
+      <Box
+        data-testid="cv-page-header"
+        sx={{
+          flexShrink: 0,
+          bgcolor: 'background.default',
+        }}
+      >
+        <CvWorkspaceHeader
+          title={cv.position.title}
+          status={cv.status}
+          templateKey={templateKey}
+          content={content}
+          canEdit={canEdit}
+          saving={saving}
+          isSaved={isSaved}
+          saveError={saveError}
+          actionError={actionError}
+          onTemplateChange={updateTemplate}
+          onRefreshClick={() => setRefreshOpen(true)}
+          onPublish={() => void publish()}
+          onPrint={() => window.print()}
+          pdfExportStatus={pdfExportStatus}
+          pdfExportError={pdfExportError}
+          onDownloadPdf={() => {
+            void exportPdf({
+              templateKey,
+              content,
+              positionTitle: cv.position.title,
+            });
+          }}
+          onRetryPdfExport={() => {
+            void exportPdf({
+              templateKey,
+              content,
+              positionTitle: cv.position.title,
+            });
+          }}
+          onRetrySave={saveError ? () => void retrySave() : undefined}
+          onRetryAction={actionError ? () => void retryAction() : undefined}
+        />
+      </Box>
 
-      <Paper sx={{ p: 3, m: 1, borderRadius: 3, maxWidth: 640 }}>
-        <Stack gap={2}>
-          <Stack direction="row" gap={1} alignItems="center">
-            <Chip size="small" label={`v${cv.version}`} />
-            <Chip
-              size="small"
-              color={cv.status === 'published' ? 'success' : 'default'}
-              label={
-                cv.status === 'published'
-                  ? t('cv.statusPublished')
-                  : t('cv.statusDraft')
-              }
-            />
-            <Typography variant="body2" color="text.secondary">
-              {t('cv.author')}: {cv.user.firstName} {cv.user.lastName} ({cv.user.email})
-            </Typography>
-          </Stack>
-
-          {attributes.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">
-              {t('cv.noAttributes')}
-            </Typography>
-          ) : (
-            <Stack direction="row" gap={1} flexWrap="wrap" alignItems="center">
-              {attributes.map((el) => {
-                if (el.type === 'Boolean') {
-                  return (
-                    <FormControlLabel
-                      key={el.id}
-                      label={el.name}
-                      control={
-                        <Checkbox
-                          checked={el.value === 'true'}
-                          disabled={!canEdit}
-                          onChange={() => toggleBoolean(el)}
-                        />
-                      }
-                    />
-                  );
-                }
-
-                if (canEdit && editingId === el.id && el.type === 'Dropdown') {
-                  const options = el.options ? el.options.split(',') : [];
-
-                  return (
-                    <TextField
-                      key={el.id}
-                      select
-                      autoFocus
-                      variant="standard"
-                      label={el.name}
-                      helperText={el.description}
-                      value={el.value || ''}
-                      onChange={(e) => changeValue(el.id, e.target.value)}
-                      onBlur={() => saveValue(el.id, el.value || '')}
-                    >
-                      {options.map((option) => (
-                        <MenuItem key={option} value={option.trim()}>
-                          {option.trim()}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  );
-                }
-
-                if (canEdit && editingId === el.id) {
-                  let inputType = 'text';
-                  if (el.type === 'Numeric') inputType = 'number';
-                  if (el.type === 'Date') inputType = 'date';
-
-                  return (
-                    <TextField
-                      key={el.id}
-                      autoFocus
-                      type={inputType}
-                      variant="standard"
-                      label={el.name}
-                      helperText={el.description}
-                      value={el.value || ''}
-                      onChange={(e) => changeValue(el.id, e.target.value)}
-                      onBlur={() => saveValue(el.id, el.value || '')}
-                    />
-                  );
-                }
-
-                return (
-                  <Chip
-                    key={el.id}
-                    label={el.value ? `${el.name}: ${el.value}` : el.name}
-                    variant={el.value ? 'filled' : 'outlined'}
-                    onClick={canEdit ? () => setEditingId(el.id) : undefined}
-                  />
-                );
-              })}
-            </Stack>
-          )}
-
-          {canEdit && cv.status === 'draft' && (
-            <Stack gap={0.5} sx={{ alignItems: 'flex-start' }}>
-              <Button
-                variant="contained"
-                disabled={!allFilled}
-                onClick={handlePublish}
-              >
-                {t('cv.publish')}
-              </Button>
-
-              {!allFilled && (
-                <Typography variant="caption" color="text.secondary">
-                  {t('cv.publishHint')}
-                </Typography>
-              )}
-            </Stack>
-          )}
-        </Stack>
-      </Paper>
-
-      <Paper sx={{ p: 3, m: 1, borderRadius: 3, maxWidth: 640 }}>
-        <Typography variant="h6" gutterBottom>
-          {t('profile.projectsTitle')}
-        </Typography>
-
-        {projects.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">
-            {t('profile.noProjectsYet')}
-          </Typography>
-        ) : (
-          <Stack gap={2}>
-            {projects.map((el) => (
-              <Stack key={el.id} gap={0.5}>
-                <Typography variant="subtitle2">{el.title}</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {el.description}
-                </Typography>
+      {isMdUp ? (
+        <Box
+          data-testid="cv-workspace"
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: isLgUp
+              ? 'minmax(0, 176px) minmax(0, 1fr) minmax(0, 1.2fr)'
+              : 'minmax(0, 1fr) minmax(0, 1fr)',
+            gap: 2,
+            px: 1,
+            pb: 1,
+            flex: 1,
+            minHeight: 0,
+            minWidth: 0,
+            overflow: 'hidden',
+          }}
+        >
+          {isLgUp ? (
+            <Box sx={{ alignSelf: 'start', minWidth: 0 }}>{rail('vertical')}</Box>
+          ) : null}
+          <Box
+            data-testid="cv-editor-pane"
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1,
+              overflow: 'auto',
+              minHeight: 0,
+              minWidth: 0,
+            }}
+          >
+            {!isLgUp ? rail('horizontal') : null}
+            {editor}
+          </Box>
+          <Box
+            data-testid="cv-preview-pane"
+            sx={{ overflow: 'auto', minHeight: 0, minWidth: 0 }}
+          >
+            {preview}
+          </Box>
+        </Box>
+      ) : (
+        <Box sx={{ flex: 1, minHeight: 0, minWidth: 0, overflow: 'auto' }}>
+          <CvMobileTabs
+            value={mobileTab}
+            onChange={setMobileTab}
+            editor={
+              <Stack gap={1}>
+                {rail('horizontal')}
+                {editor}
               </Stack>
-            ))}
-          </Stack>
-        )}
-      </Paper>
-    </>
+            }
+            preview={preview}
+          />
+        </Box>
+      )}
+
+      <RefreshFromProfileDialog
+        key={refreshOpen ? 'refresh-open' : 'refresh-closed'}
+        open={refreshOpen}
+        onClose={() => setRefreshOpen(false)}
+        onConfirm={handleRefreshConfirm}
+        confirming={refreshing}
+      />
+    </Box>
   );
 };
 

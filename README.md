@@ -1,77 +1,84 @@
-# React + TypeScript + Vite
+# CvManager
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Candidate CV workspace with profile-backed content snapshots, two A4 document templates, EN/RU UI, light/dark app chrome, and client-side PDF download.
 
-Currently, two official plugins are available:
+## Local setup
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### Prerequisites
 
-## React Compiler
+- Node.js 20+
+- PostgreSQL with credentials in `server/.env` (see server dotenv usage)
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+### Install
 
-Note: This will impact Vite dev & build performances.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm install
+npm --prefix server install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Run
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```bash
+# API (requires DB credentials in server/.env)
+npm --prefix server run dev
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+# Web app
+npm run dev
 ```
+
+### One-time snapshot backfill
+
+After deploying the nullable snapshot schema, migrate existing rows idempotently:
+
+```bash
+npm --prefix server run backfill:cv-snapshots
+```
+
+This creates missing candidate profiles, migrates project `description` → `descriptionMarkdown`, and fills CV `content` / `templateKey` when absent. Safe to re-run.
+
+Do not run the backfill against a database you do not intend to modify.
+
+## Tests, lint, and build
+
+```bash
+npm run test:run
+npm run lint
+npm run build
+```
+
+## CV document features
+
+### Templates
+
+- `editorial-sidebar` — dark sidebar contact/skills + main education/projects column
+- `structured-minimal` — header band with two-column body
+
+Both web preview and PDF consume the same typed `CvContent` snapshot. The preview/PDF paper stays light in both app themes; workspace controls (including the Markdown editor) follow `ThemeStore` light/dark mode.
+
+### Supported Markdown (project descriptions)
+
+Only:
+
+- **bold**
+- *italic*
+- unordered lists
+- links
+
+HTML is rejected by validation and stripped from renderers. Toolbar actions expose localized accessible names (EN/RU).
+
+### PDF download
+
+- Client-side `@react-pdf/renderer` export (A4, selectable text)
+- One renderer per template key
+- Status feedback: generating → success snackbar, or error + retry
+- Browser print remains an optional convenience action
+
+### Roles and list data
+
+- Candidates see only their own CVs from `GET /api/cv`
+- Recruiters see published CVs only
+- CV list shows localized status and template columns
+
+## i18n
+
+UI copy lives in `client/shared/i18n/languages/en.ts` and `ru.ts`. Feature keys under `cv` and `profile` stay parallel across both languages.

@@ -74,7 +74,15 @@ const AppLayout = () => {
         <Sidebar role={currentUser.role} onClose={() => setMobileOpen(false)} />
       </Drawer>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', minWidth: 0 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          width: '100%',
+          minWidth: 0,
+          minHeight: '100vh',
+        }}
+      >
         <Topbar
           onMenuClick={() => setMobileOpen(true)}
           displayName={displayName}
@@ -85,7 +93,16 @@ const AppLayout = () => {
           onLogout={handleLogout}
         />
 
-        <Box sx={{ p: 3 }}>
+        <Box
+          sx={{
+            p: 3,
+            flex: 1,
+            minHeight: 0,
+            minWidth: 0,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
           <Outlet />
         </Box>
       </Box>

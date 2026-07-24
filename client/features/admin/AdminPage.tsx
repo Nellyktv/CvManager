@@ -18,6 +18,25 @@ const roles: UserRole[] = ['CANDIDATE', 'RECRUITER', 'ADMIN'];
 const USERS_ROUTE = '/user';
 const DEFAULT_ROLE: UserRole = 'CANDIDATE';
 
+const toUserRows = (allUsers: ServerUser[], currentUserId: number): UserRow[] => {
+  const data = allUsers.map((user: ServerUser) => {
+    return {
+      id: user.id,
+      name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+      email: user.email,
+      role: user.role,
+      status: user.isBlocked
+        ? 'Blocked'
+        : user.isActivated
+          ? 'Active'
+          : 'NotActivated',
+      isBlocked: user.isBlocked,
+    };
+  });
+
+  return data.filter((user: UserRow) => user.id !== currentUserId);
+};
+
 const AdminPage = () => {
   const { t } = useTranslation();
   const { enqueueSnackbar } = useSnackbar();
@@ -115,27 +134,7 @@ const AdminPage = () => {
   const loadUsers = async () => {
     try {
       const response = await api.get(USERS_ROUTE);
-
-      const data = response.data.allUsers.map((user: ServerUser) => {
-        return {
-          id: user.id,
-          name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
-          email: user.email,
-          role: user.role,
-          status: user.isBlocked
-            ? 'Blocked'
-            : user.isActivated
-              ? 'Active'
-              : 'NotActivated',
-          isBlocked: user.isBlocked,
-        };
-      });
-
-      const dataWithoutSelf = data.filter(
-        (user: UserRow) => user.id !== currentUser.id
-      );
-
-      setUsers(dataWithoutSelf);
+      setUsers(toUserRows(response.data.allUsers, currentUser.id));
     } catch (error) {
       showError(error);
     } finally {
@@ -144,8 +143,34 @@ const AdminPage = () => {
   };
 
   useEffect(() => {
-    loadUsers();
-  }, []);
+    let cancelled = false;
+
+    const fetchUsers = async () => {
+      try {
+        const response = await api.get(USERS_ROUTE);
+        if (!cancelled) {
+          setUsers(toUserRows(response.data.allUsers, currentUser.id));
+        }
+      } catch (error) {
+        console.error(error);
+        if (!cancelled) {
+          enqueueSnackbar(t('common.error'), {
+            variant: 'error',
+          });
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void fetchUsers();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentUser.id, enqueueSnackbar, t]);
 
   const handleDelete = async () => {
     let hasError = false;

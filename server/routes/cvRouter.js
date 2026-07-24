@@ -16,7 +16,8 @@ cvRouter.get('/position/:positionId', checkRoleMiddleware(['RECRUITER', 'ADMIN']
 
 cvRouter.get('/:id', authMiddleware, CvController.getCv);
 
+cvRouter.put('/:id/refresh-from-profile', authMiddleware, CvController.refreshCvFromProfile);
 cvRouter.put('/:id/publish', authMiddleware, CvController.publishCv);
-
+cvRouter.put('/:id', authMiddleware, CvController.updateCv);
 
 cvRouter.delete('/:id', authMiddleware, CvController.deleteCv);

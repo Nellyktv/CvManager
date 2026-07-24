@@ -1,37 +1,39 @@
-import type { AttributeType } from '../attributes/AttributesPage.constants';
+import type { CvContent, CvTemplateKey } from '../../shared/types/cv';
 
-export type CvPosition = {
-  id: number;
-  title: string;
-};
+export type CvWorkspaceTab = 'editor' | 'preview';
 
-export type CvUser = {
-  id: number;
-  firstName: string | null;
-  lastName: string | null;
-  email: string;
-};
+export type CvEditorSection = 'contact' | 'skills' | 'education' | 'projects';
 
-export type CvData = {
-  id: number;
-  version: number;
-  status: string;
-  userId: number;
-  position: CvPosition;
-  user: CvUser;
-};
+export const CV_EDITOR_SECTIONS: CvEditorSection[] = [
+  'contact',
+  'skills',
+  'education',
+  'projects',
+];
 
-export type CvAttribute = {
-  id: number;
-  name: string;
-  description: string;
-  type: AttributeType;
-  options: string | null;
-  value: string | null;
-};
+export const emptyCvContent = (): CvContent => ({
+  contact: {
+    name: '',
+    links: [],
+  },
+  skills: [],
+  education: [],
+  projects: [],
+});
 
-export type CvProject = {
-  id: number;
-  title: string;
-  description: string;
+export const DEFAULT_TEMPLATE_KEY: CvTemplateKey = 'editorial-sidebar';
+
+export const CV_TEMPLATE_OPTIONS: Array<{
+  key: CvTemplateKey;
+  labelKey: 'cv.templateEditorialSidebar' | 'cv.templateStructuredMinimal';
+}> = [
+  { key: 'editorial-sidebar', labelKey: 'cv.templateEditorialSidebar' },
+  { key: 'structured-minimal', labelKey: 'cv.templateStructuredMinimal' },
+];
+
+export const templateLabelKey = (
+  templateKey: CvTemplateKey | string | null | undefined,
+): (typeof CV_TEMPLATE_OPTIONS)[number]['labelKey'] => {
+  const match = CV_TEMPLATE_OPTIONS.find((option) => option.key === templateKey);
+  return match?.labelKey ?? 'cv.templateEditorialSidebar';
 };

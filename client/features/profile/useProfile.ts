@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useLocation } from 'react-router';
 import { useSnackbar } from 'notistack';
 import { useTranslation } from 'react-i18next';
 
 import { api } from '../../api/axios.api';
+import { deleteSkill, getSkills, saveSkill } from '../../api/skills.api';
 import {
   emptyProfile,
   type Profile,
@@ -36,12 +37,15 @@ export const useProfile = (profileId: number, isOwner: boolean) => {
     selectedAttributeIds.includes(el.id)
   );
 
-  const showError = (error: unknown) => {
-    console.error(error);
-    enqueueSnackbar(t('common.error'), {
-      variant: 'error',
-    });
-  };
+  const showError = useCallback(
+    (error: unknown) => {
+      console.error(error);
+      enqueueSnackbar(t('common.error'), {
+        variant: 'error',
+      });
+    },
+    [enqueueSnackbar, t]
+  );
 
   useEffect(() => {
     if (!profileId) return;
@@ -61,7 +65,7 @@ export const useProfile = (profileId: number, isOwner: boolean) => {
       .catch((error) => {
         showError(error);
       });
-  }, [profileId]);
+  }, [profileId, showError]);
 
   useEffect(() => {
     if (!profileId) return;
@@ -82,18 +86,18 @@ export const useProfile = (profileId: number, isOwner: boolean) => {
       .catch((error) => {
         showError(error);
       });
-  }, [profileId, location.key]);
+  }, [profileId, location.key, showError]);
 
   useEffect(() => {
     if (!isOwner) return;
 
-    Promise.all([api.get('/attribute'), api.get('/skills')])
+    Promise.all([api.get('/attribute'), getSkills()])
       .then(([attributesResponse, skillsResponse]) => {
         setAllAttributes(attributesResponse.data.allAttributes);
 
         const selectedIds: number[] = [];
 
-        for (const skill of skillsResponse.data.skills as Skill[]) {
+        for (const skill of skillsResponse.skills as Skill[]) {
           selectedIds.push(skill.attributeId);
         }
 
@@ -105,7 +109,7 @@ export const useProfile = (profileId: number, isOwner: boolean) => {
       .finally(() => {
         setLoadingSkills(false);
       });
-  }, [isOwner]);
+  }, [isOwner, showError]);
 
   const selectAttributes = async (newSelectedIds: number[]) => {
     const addedIds: number[] = [];
@@ -128,7 +132,7 @@ export const useProfile = (profileId: number, isOwner: boolean) => {
 
     for (const id of addedIds) {
       try {
-        await api.post('/skills', { attributeId: id, value: '' });
+        await saveSkill({ attributeId: id, value: '' });
       } catch (error) {
         console.error(error);
       }
@@ -136,7 +140,7 @@ export const useProfile = (profileId: number, isOwner: boolean) => {
 
     for (const id of removedIds) {
       try {
-        await api.delete(`/skills/${id}`);
+        await deleteSkill(id);
       } catch (error) {
         console.error(error);
       }
