@@ -120,6 +120,8 @@ export const ru = {
     statusDraft: 'Черновик',
     generate: 'Создать резюме',
     generated: 'Резюме создано',
+    generatedGoToProfile: 'Резюме успешно сгенерировано.',
+    goToProfile: 'Перейти к резюме',
     publish: 'Опубликовать',
     publishHint: 'Заполните все атрибуты, чтобы опубликовать',
     author: 'Автор',

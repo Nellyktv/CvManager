@@ -1,8 +1,8 @@
-import { Paper, Typography, Box, Button, Stack } from '@mui/material';
+import { Paper, Typography, Box, Button, Stack, Alert, Link } from '@mui/material';
 import { DataGrid, type GridColDef, type GridRowId } from '@mui/x-data-grid';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
-import { useSearchParams } from 'react-router';
+import { useSearchParams, Link as RouterLink } from 'react-router';
 import { useState } from 'react';
 
 import CrudToolbar from '../../shared/components/toolbars/CrudToolbar';
@@ -95,6 +95,7 @@ const PositionPage = () => {
   const [selectedIds, setSelectedIds] = useState<GridRowId[]>([]);
   const [cvsDialogOpen, setCvsDialogOpen] = useState(false);
   const [positionCvs, setPositionCvs] = useState<PositionCv[]>([]);
+  const [generatedCvId, setGeneratedCvId] = useState<number | null>(null);
 
   const formFields = [
     {
@@ -176,11 +177,11 @@ const PositionPage = () => {
 
   const handleGenerateCv = async () => {
     try {
-      await api.post('/cv/create_resume', {
+      const response = await api.post('/cv/create_resume', {
         positionId: selectedIds[0],
       });
 
-      enqueueSnackbar(t('cv.generated'), { variant: 'success' });
+      setGeneratedCvId(response.data.cv.id);
     } catch (error) {
       console.error('Failed to generate CV', error);
       enqueueSnackbar(t('common.error'), { variant: 'error' });
@@ -260,6 +261,19 @@ const PositionPage = () => {
               {t('cv.generate')}
             </Button>
           </Stack>
+        )}
+
+        {generatedCvId && (
+          <Alert
+            severity="success"
+            onClose={() => setGeneratedCvId(null)}
+            sx={{ mb: 2 }}
+          >
+            {t('cv.generatedGoToProfile')}{' '}
+            <Link component={RouterLink} to={`/cv/${generatedCvId}`}>
+              {t('cv.goToProfile')}
+            </Link>
+          </Alert>
         )}
 
         <Box sx={{ height: 400, width: '100%' }}>

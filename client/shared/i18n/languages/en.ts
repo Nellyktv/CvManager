@@ -120,6 +120,8 @@ export const en = {
     statusDraft: 'Draft',
     generate: 'Generate CV',
     generated: 'CV created',
+    generatedGoToProfile: 'CV created successfully.',
+    goToProfile: 'Go to CV',
     publish: 'Publish',
     publishHint: 'Fill in all attributes to publish',
     author: 'Author',
