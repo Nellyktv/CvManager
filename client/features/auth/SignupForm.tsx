@@ -8,9 +8,10 @@ import {
   InputAdornment,
   Paper,
   Alert,
+  Link,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { Link, useNavigate } from 'react-router';
+import { Link as RouterLink, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -162,7 +163,14 @@ const SignupForm = ({
 
         <Typography variant="body2" textAlign="center">
           {textForLink}
-          <Link to={linkTo}>{linkName}</Link>
+          <Link
+            component={RouterLink}
+            to={linkTo}
+            underline="none"
+            sx={{ '&:hover': { color: 'primary.main' } }}
+          >
+            {linkName}
+          </Link>
         </Typography>
       </Stack>
     </Paper>

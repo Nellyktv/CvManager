@@ -8,15 +8,18 @@ import {
   MenuItem,
   Avatar,
   IconButton,
+  Button,
 } from '@mui/material';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router';
 
 import { useThemeStore } from '../../../store/ThemeStore';
 import type { UserRole } from '../../../store/UserStore';
+import { LOGIN_ROUTE } from '../../utils/constsLinks';
 
 type TopbarProps = {
   onMenuClick: () => void;
@@ -24,6 +27,7 @@ type TopbarProps = {
   initials: string;
   email: string;
   role: UserRole | '';
+  isAuth: boolean;
   onLogout: () => void;
 };
 
@@ -33,9 +37,11 @@ const Topbar = ({
   initials,
   email,
   role,
+  isAuth,
   onLogout,
 }: TopbarProps) => {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const mode = useThemeStore((state) => state.theme);
   const toggleMode = useThemeStore((state) => state.toggleTheme);
   const currentLang = i18n.language.startsWith('ru') ? 'ru' : 'en';
@@ -72,21 +78,31 @@ const Topbar = ({
             {mode === 'dark' ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
           </IconButton>
 
-          <Stack direction="row" alignItems="center" gap={1}>
-            <Avatar>{initials}</Avatar>
-            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-              <Typography variant="body2">
-                {displayName || email}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {role && t(`roles.${role.toLowerCase()}`)}
-              </Typography>
-            </Box>
-          </Stack>
+          {!isAuth && (
+            <Button variant="contained" onClick={() => navigate(LOGIN_ROUTE)}>
+              {t('auth.login')}
+            </Button>
+          )}
 
-          <IconButton onClick={onLogout} title={t('common.logout')}>
-            <LogoutOutlinedIcon />
-          </IconButton>
+          {isAuth && (
+            <>
+              <Stack direction="row" alignItems="center" gap={1}>
+                <Avatar>{initials}</Avatar>
+                <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                  <Typography variant="body2">
+                    {displayName || email}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {role && t(`roles.${role.toLowerCase()}`)}
+                  </Typography>
+                </Box>
+              </Stack>
+
+              <IconButton onClick={onLogout} title={t('common.logout')}>
+                <LogoutOutlinedIcon />
+              </IconButton>
+            </>
+          )}
         </Stack>
       </Toolbar>
     </AppBar>

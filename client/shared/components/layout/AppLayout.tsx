@@ -12,6 +12,7 @@ import Topbar from './Topbar';
 const AppLayout = () => {
   const navigate = useNavigate();
   const logout = useUserStore((state) => state.logout);
+  const isAuth = useUserStore((state) => state.isAuth);
   const currentUser = useUserStore((state) => state.user);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [displayName, setDisplayName] = useState('');
@@ -80,6 +81,7 @@ const AppLayout = () => {
           initials={initials}
           email={currentUser.email}
           role={currentUser.role}
+          isAuth={isAuth}
           onLogout={handleLogout}
         />
 
