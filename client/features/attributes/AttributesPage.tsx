@@ -41,7 +41,7 @@ const AttributesPage = () => {
     },
   ];
 
-  const { items: attributes, createItem, updateItem, deleteItems } =
+  const { items: attributes, isLoading, createItem, updateItem, deleteItems } =
     useCrud<Attribute>(CANDIDAT_SKILLS_CONTAINER_ROUTER, 'allAttributes');
 
   const { open, form, setForm, editId, openCreate, openEdit, closeDialog } =
@@ -94,6 +94,7 @@ const AttributesPage = () => {
           <DataGrid
             rows={attributes}
             columns={columns}
+            loading={isLoading}
             showToolbar
             disableColumnFilter
             checkboxSelection

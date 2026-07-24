@@ -64,6 +64,7 @@ const PositionPage = () => {
 
   const {
     items: positions,
+    isLoading,
     createItem,
     updateItem,
     deleteItems,
@@ -265,6 +266,7 @@ const PositionPage = () => {
           <DataGrid
             rows={visiblePositions}
             columns={columns}
+            loading={isLoading}
             showToolbar
             disableColumnFilter
             checkboxSelection

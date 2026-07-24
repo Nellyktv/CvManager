@@ -32,6 +32,7 @@ const SearchPage = () => {
   const tag = searchParams.get('tag');
 
   const [rows, setRows] = useState<CvRow[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const columns: GridColDef<CvRow>[] = [
     {
@@ -83,6 +84,8 @@ const SearchPage = () => {
       setRows(tableRows);
     } catch (error) {
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -95,6 +98,7 @@ const SearchPage = () => {
       <DataGrid
         rows={rows}
         columns={columns}
+        loading={isLoading}
         showToolbar
         disableColumnFilter
         onRowClick={(params) => navigate(`/cv/${params.id}`)}

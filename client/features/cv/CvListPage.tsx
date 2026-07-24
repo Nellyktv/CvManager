@@ -8,7 +8,7 @@ import { useCvList, type CvRow } from '../../shared/hooks/useCvList';
 const CvListPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { cvs: rows } = useCvList();
+  const { cvs: rows, isLoading } = useCvList();
 
   const columns: GridColDef<CvRow>[] = [
     { field: 'candidate', headerName: t('cv.columnCandidate'), flex: 1, minWidth: 160 },
@@ -28,6 +28,7 @@ const CvListPage = () => {
           <DataGrid
             rows={rows}
             columns={columns}
+            loading={isLoading}
             showToolbar
             disableColumnFilter
             onRowClick={(params) => navigate(`/cv/${params.id}`)}
