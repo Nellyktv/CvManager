@@ -43,29 +43,18 @@ const SearchPage = () => {
   ];
 
   useEffect(() => {
-    let cancelled = false;
-
-    const loadCv = async () => {
-      try {
-        const response = await api.get('/cv', { params: { tag } });
+    api
+      .get('/cv', { params: { tag } })
+      .then((response) => {
         const serverCvs: ServerCv[] = response.data.allCv;
-        if (!cancelled) {
-          setRows(serverCvs.map(toCvRow));
-        }
-      } catch (error) {
+        setRows(serverCvs.map(toCvRow));
+      })
+      .catch((error) => {
         console.error(error);
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    void loadCv();
-
-    return () => {
-      cancelled = true;
-    };
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, [tag]);
 
   return (

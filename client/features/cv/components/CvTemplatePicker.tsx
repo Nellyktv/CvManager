@@ -20,9 +20,11 @@ type CvTemplatePickerProps = {
   disabled?: boolean;
 };
 
-const templateDescriptionKey = (
-  key: CvTemplateKey,
-): 'cv.templateEditorialSidebarDescription' | 'cv.templateStructuredMinimalDescription' =>
+type CvTemplateDescriptionKey =
+  | 'cv.templateEditorialSidebarDescription'
+  | 'cv.templateStructuredMinimalDescription';
+
+const templateDescriptionKey = (key: CvTemplateKey): CvTemplateDescriptionKey =>
   key === 'structured-minimal'
     ? 'cv.templateStructuredMinimalDescription'
     : 'cv.templateEditorialSidebarDescription';

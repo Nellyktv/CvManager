@@ -23,7 +23,15 @@ type FormValues = {
   portfolioUrl: string;
 };
 
-type FieldErrors = Partial<Record<keyof FormValues, string>>;
+type FieldErrors = {
+  headline?: string;
+  publicEmail?: string;
+  phone?: string;
+  location?: string;
+  linkedinUrl?: string;
+  githubUrl?: string;
+  portfolioUrl?: string;
+};
 
 const toFormValues = (profile: CandidateProfile): FormValues => ({
   headline: profile.headline ?? '',
@@ -62,17 +70,22 @@ const CandidateContactForm = ({
     const result = schema.safeParse(values);
     if (result.success) return {};
 
-    const next: FieldErrors = {};
+    const errors: FieldErrors = {};
     for (const issue of result.error.issues) {
-      const key = issue.path[0];
-      if (typeof key === 'string' && !next[key as keyof FormValues]) {
-        next[key as keyof FormValues] = issue.message;
+      switch (issue.path[0]) {
+        case 'headline': errors.headline = issue.message; break;
+        case 'publicEmail': errors.publicEmail = issue.message; break;
+        case 'phone': errors.phone = issue.message; break;
+        case 'location': errors.location = issue.message; break;
+        case 'linkedinUrl': errors.linkedinUrl = issue.message; break;
+        case 'githubUrl': errors.githubUrl = issue.message; break;
+        case 'portfolioUrl': errors.portfolioUrl = issue.message; break;
       }
     }
-    return next;
+    return errors;
   };
 
-  const updateField = <K extends keyof FormValues>(key: K, value: FormValues[K]) => {
+  const updateField = (key: keyof FormValues, value: string) => {
     const next = { ...form, [key]: value };
     setForm(next);
     setErrors(validate(next));

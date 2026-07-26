@@ -21,7 +21,7 @@ import {
   GoogleOAuthProvider,
   type CredentialResponse,
 } from '@react-oauth/google';
-import { FormSchemaLogin, type LoginFormFields } from '../../shared/utils/shemas';
+import { createLoginSchema, type LoginFormFields } from '../../shared/utils/shemas';
 import { api } from '../../api/axios.api';
 import useUserStore, { type UserRole } from '../../store/UserStore';
 import { PUBLIC_ROUTE } from '../../shared/utils/constsLinks';
@@ -49,13 +49,20 @@ const LoginForm = ({
   const setIsAuth = useUserStore((state) => state.setIsAuth);
   const setUser = useUserStore((state) => state.setUser);
 
+  const schema = createLoginSchema({
+    invalidEmail: t('auth.invalidEmail'),
+    passwordMinLength: t('auth.passwordMinLength'),
+    passwordNeedsUppercase: t('auth.passwordNeedsUppercase'),
+    passwordNeedsNumber: t('auth.passwordNeedsNumber'),
+  });
+
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
   } = useForm<LoginFormFields>({
-    resolver: zodResolver(FormSchemaLogin),
+    resolver: zodResolver(schema),
   });
 
   const applyAuthToken = (token: string) => {

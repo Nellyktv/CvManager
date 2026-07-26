@@ -18,24 +18,6 @@ const parseOrBadRequest = (validate, body) => {
   }
 };
 
-const resolveDescriptionMarkdown = (data) => {
-  if (data.descriptionMarkdown !== undefined) return data.descriptionMarkdown;
-  if (data.description !== undefined) return data.description;
-  return undefined;
-};
-
-const presentProject = (project) => {
-  const data = typeof project.toJSON === 'function' ? project.toJSON() : { ...project };
-  const markdown =
-    data.descriptionMarkdown != null && data.descriptionMarkdown !== ''
-      ? data.descriptionMarkdown
-      : data.description;
-  return {
-    ...data,
-    descriptionMarkdown: markdown ?? data.descriptionMarkdown,
-  };
-};
-
 const assertMergedDateRange = (existing, data) => {
   const range = {
     startDate: data.startDate !== undefined ? data.startDate : existing.startDate,
@@ -55,12 +37,11 @@ const getMyProjects = async (req, res) => {
     ],
   });
 
-  return res.json({ projects: projects.map(presentProject) });
+  return res.json({ projects });
 };
 
 const createProject = async (req, res) => {
   const data = parseOrBadRequest(validateProjectCreate, req.body);
-  const descriptionMarkdown = resolveDescriptionMarkdown(data);
 
   const project = await Project.create({
     title: data.title,
@@ -69,11 +50,11 @@ const createProject = async (req, res) => {
     endDate: data.endDate,
     links: data.links,
     displayOrder: data.displayOrder,
-    descriptionMarkdown,
+    descriptionMarkdown: data.descriptionMarkdown,
     userId: req.user.id,
   });
 
-  return res.json({ project: presentProject(project) });
+  return res.json({ project });
 };
 
 const updateProject = async (req, res) => {
@@ -99,16 +80,12 @@ const updateProject = async (req, res) => {
   if (data.endDate !== undefined) updates.endDate = data.endDate;
   if (data.links !== undefined) updates.links = data.links;
   if (data.displayOrder !== undefined) updates.displayOrder = data.displayOrder;
-
-  const descriptionMarkdown = resolveDescriptionMarkdown(data);
-  if (descriptionMarkdown !== undefined) {
-    updates.descriptionMarkdown = descriptionMarkdown;
-  }
+  if (data.descriptionMarkdown !== undefined) updates.descriptionMarkdown = data.descriptionMarkdown;
 
   await project.update(updates);
 
   return res.json({
-    project: presentProject(project),
+    project,
   });
 };
 

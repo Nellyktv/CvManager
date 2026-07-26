@@ -3,6 +3,7 @@ import { Document, Link, Page, StyleSheet, Text, View } from '@react-pdf/rendere
 import type { CvContent } from '../../../shared/types/cv';
 import { formatCvDateRange } from '../../../shared/utils/formatDate';
 import { groupSkills } from '../preview/groupSkills';
+import { isSafeUrl } from '../../../shared/utils/isSafeUrl';
 import { markdownToPdf } from './markdownToPdf';
 
 type Props = {
@@ -16,28 +17,43 @@ type Props = {
   locale: 'en' | 'ru';
 };
 
+const COLORS = {
+  pageText: '#1c1f24',
+  pageBg: '#ffffff',
+  headerBg: '#334155',
+  headerText: '#f8fafc',
+  mutedLight: '#cbd5e1',
+  contactSep: '#94a3b8',
+  railHeading: '#5a6570',
+  railBorder: '#cfd5db',
+  projectBorder: '#e5e7eb',
+  metaText: '#4b5563',
+  linkColor: '#1d4ed8',
+  groupLabel: '#374151',
+};
+
 const styles = StyleSheet.create({
   page: {
     fontFamily: 'Helvetica',
     fontSize: 9,
-    color: '#1c1f24',
-    backgroundColor: '#ffffff',
+    color: COLORS.pageText,
+    backgroundColor: COLORS.pageBg,
   },
   header: {
-    backgroundColor: '#334155',
-    color: '#f8fafc',
+    backgroundColor: COLORS.headerBg,
+    color: COLORS.headerText,
     paddingHorizontal: 18,
     paddingVertical: 16,
   },
   name: {
     fontSize: 18,
     fontFamily: 'Helvetica-Bold',
-    color: '#f8fafc',
+    color: COLORS.headerText,
     marginBottom: 3,
   },
   headline: {
     fontSize: 10,
-    color: '#f8fafc',
+    color: COLORS.headerText,
     marginBottom: 8,
   },
   contactHeading: {
@@ -45,18 +61,18 @@ const styles = StyleSheet.create({
     fontFamily: 'Helvetica-Bold',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
-    color: '#cbd5e1',
+    color: COLORS.mutedLight,
     marginBottom: 3,
   },
   contactLine: {
     fontSize: 9,
-    color: '#f8fafc',
+    color: COLORS.headerText,
   },
   contactSep: {
-    color: '#94a3b8',
+    color: COLORS.contactSep,
   },
   contactLink: {
-    color: '#cbd5e1',
+    color: COLORS.mutedLight,
     textDecoration: 'underline',
   },
   body: {
@@ -76,9 +92,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Helvetica-Bold',
     letterSpacing: 0.7,
     textTransform: 'uppercase',
-    color: '#5a6570',
+    color: COLORS.railHeading,
     borderBottomWidth: 1,
-    borderBottomColor: '#cfd5db',
+    borderBottomColor: COLORS.railBorder,
     paddingBottom: 3,
     marginBottom: 8,
   },
@@ -86,7 +102,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: COLORS.projectBorder,
   },
   projectTitle: {
     fontSize: 11,
@@ -95,19 +111,19 @@ const styles = StyleSheet.create({
   },
   meta: {
     fontSize: 9,
-    color: '#4b5563',
+    color: COLORS.metaText,
     marginBottom: 3,
   },
   link: {
     fontSize: 9,
-    color: '#1d4ed8',
+    color: COLORS.linkColor,
     textDecoration: 'underline',
     marginBottom: 2,
   },
   groupLabel: {
     fontSize: 9,
     fontFamily: 'Helvetica-Bold',
-    color: '#374151',
+    color: COLORS.groupLabel,
     marginBottom: 2,
   },
   item: {
@@ -141,7 +157,7 @@ const StructuredMinimalPdf = ({ content, labels, locale }: Props) => {
             {contactBits.map((bit, index) => (
               <Text key={`${bit.text}-${index}`}>
                 {index > 0 ? <Text style={styles.contactSep}> · </Text> : null}
-                {bit.url ? (
+                {bit.url && isSafeUrl(bit.url) ? (
                   <Link src={bit.url} style={styles.contactLink}>
                     {bit.text}
                   </Link>
@@ -172,11 +188,17 @@ const StructuredMinimalPdf = ({ content, labels, locale }: Props) => {
                         </Text>
                       ) : null}
                     </View>
-                    {project.links.map((link) => (
-                      <Link key={link.url} src={link.url} style={styles.link}>
-                        {link.label}
-                      </Link>
-                    ))}
+                    {project.links.map((link) =>
+                      isSafeUrl(link.url) ? (
+                        <Link key={link.url} src={link.url} style={styles.link}>
+                          {link.label}
+                        </Link>
+                      ) : (
+                        <Text key={link.url} style={styles.link}>
+                          {link.label}
+                        </Text>
+                      ),
+                    )}
                     {markdownToPdf(project.descriptionMarkdown)}
                   </View>
                 );

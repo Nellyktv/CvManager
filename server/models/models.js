@@ -23,7 +23,6 @@ const Position = sequelize.define('position', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     title: { type: DataTypes.STRING },
     description: { type: DataTypes.TEXT },
-    visibility: { type: DataTypes.STRING },
     userIdCreator: { type: DataTypes.INTEGER }
 });
 
@@ -55,15 +54,9 @@ const PositionAttribute = sequelize.define('position_attribute', {});
 
 const PositionAccess = sequelize.define('position_access', {});
 
-const Comment = sequelize.define('comment', {
-    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    text: { type: DataTypes.TEXT }
-});
-
 const Project = sequelize.define('project', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     title: { type: DataTypes.STRING },
-    description: { type: DataTypes.TEXT },
     role: { type: DataTypes.STRING, allowNull: true },
     startDate: { type: DataTypes.DATEONLY, allowNull: true },
     endDate: { type: DataTypes.DATEONLY, allowNull: true },
@@ -119,13 +112,6 @@ Attribute.hasMany(CandidateSkills);
 CandidateSkills.belongsTo(Attribute, { as: 'attribute' });
 
 
-Cv.hasMany(Comment);
-Comment.belongsTo(Cv);
-
-User.hasMany(Comment);
-Comment.belongsTo(User);
-
-
 User.hasMany(Project);
 Project.belongsTo(User);
 
@@ -143,7 +129,6 @@ export {
     CandidateSkills,
     PositionAttribute,
     PositionAccess,
-    Comment,
     Project,
     CandidateProfile,
     Education,

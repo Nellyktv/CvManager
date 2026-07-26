@@ -30,7 +30,14 @@ const SECTION_OPTIONS: Array<{ key: CvSection; labelKey: string }> = [
   { key: 'projects', labelKey: 'cv.refreshSectionProjects' },
 ];
 
-const emptySelection = (): Record<CvSection, boolean> => ({
+type SectionSelection = {
+  contact: boolean;
+  skills: boolean;
+  education: boolean;
+  projects: boolean;
+};
+
+const emptySelection = (): SectionSelection => ({
   contact: false,
   skills: false,
   education: false,
@@ -44,7 +51,7 @@ const RefreshFromProfileDialog = ({
   confirming = false,
 }: Props) => {
   const { t } = useTranslation();
-  const [selected, setSelected] = useState<Record<CvSection, boolean>>(emptySelection);
+  const [selected, setSelected] = useState<SectionSelection>(emptySelection);
   const [hint, setHint] = useState(false);
 
   const handleClose = () => {

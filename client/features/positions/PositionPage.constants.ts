@@ -12,7 +12,6 @@ export type Position = {
   id: number;
   title: string;
   description: string;
-  visibility: string;
   updatedAt: string;
   attributes?: Attribute[];
   allowedCandidates?: AllowedCandidate[];
@@ -21,7 +20,6 @@ export type Position = {
 export type PositionFormValues = {
   title: string;
   description: string;
-  visibility: string;
   attributeIds: number[];
   allowedCandidateIds: number[];
 };
@@ -29,7 +27,6 @@ export type PositionFormValues = {
 export const initialForm: PositionFormValues = {
   title: '',
   description: '',
-  visibility: '',
   attributeIds: [],
   allowedCandidateIds: [],
 };

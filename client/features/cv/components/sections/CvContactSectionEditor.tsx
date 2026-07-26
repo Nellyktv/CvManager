@@ -1,136 +1,177 @@
 import { useState } from 'react';
-import { Button, Grid, IconButton, Stack, TextField, Typography } from '@mui/material';
+import {
+  Button,
+  Grid,
+  IconButton,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { useTranslation } from 'react-i18next';
 
-import type { CvContent, CvLink } from '../../../../shared/types/cv';
-import { cvLinkSchema } from '../../../../shared/utils/cvSchemas';
+import type { CvContact } from '../../../../shared/types/cv';
+import CvDialog from './CvDialog';
 
 type Props = {
-  contact: CvContent['contact'];
-  onChange: (contact: CvContent['contact']) => void;
+  contact: CvContact;
+  onChange: (contact: CvContact) => void;
   disabled?: boolean;
 };
 
-const emptyDraft = (): CvLink => ({ label: '', url: '' });
-
-const CvContactSectionEditor = ({ contact, onChange, disabled = false }: Props) => {
+const CvContactSectionEditor = ({
+  contact,
+  onChange,
+  disabled = false,
+}: Props) => {
   const { t } = useTranslation();
-  const [draftLink, setDraftLink] = useState<CvLink | null>(null);
+  const [open, setOpen] = useState(false);
+  const [selectedLinkIndex, setSelectedLinkIndex] = useState(-1);
 
-  const updateField = <K extends keyof CvContent['contact']>(
-    key: K,
-    value: CvContent['contact'][K],
+  const onClose = () => {
+    setOpen(false);
+    setSelectedLinkIndex(-1);
+  };
+
+  const openDeleteDialog = (index: number) => {
+    setSelectedLinkIndex(index);
+    setOpen(true);
+  };
+
+  const updateField = (
+    field: 'name' | 'headline' | 'email' | 'phone' | 'location',
+    value: string,
   ) => {
-    onChange({ ...contact, [key]: value });
-  };
-
-  const updateLink = (index: number, key: keyof CvLink, value: string) => {
-    const links = contact.links.map((link, i) =>
-      i === index ? { ...link, [key]: value } : link,
-    );
-    onChange({ ...contact, links });
-  };
-
-  const addLink = () => {
-    if (disabled || draftLink) return;
-    setDraftLink(emptyDraft());
-  };
-
-  const updateDraft = (key: keyof CvLink, value: string) => {
-    setDraftLink((prev) => (prev ? { ...prev, [key]: value } : prev));
-  };
-
-  const commitDraft = () => {
-    if (!draftLink) return;
-    if (!cvLinkSchema.safeParse(draftLink).success) return;
-    onChange({ ...contact, links: [...contact.links, draftLink] });
-    setDraftLink(null);
-  };
-
-  const cancelDraft = () => {
-    setDraftLink(null);
-  };
-
-  const removeLink = (index: number) => {
     onChange({
       ...contact,
-      links: contact.links.filter((_, i) => i !== index),
+      [field]: value,
     });
   };
 
+  const updateLink = (
+    index: number,
+    field: 'label' | 'url',
+    value: string,
+  ) => {
+    const links = contact.links.map((link, i) =>
+      i === index ? { ...link, [field]: value } : link,
+    );
+
+    onChange({
+      ...contact,
+      links,
+    });
+  };
+
+  const addLink = () => {
+    onChange({
+      ...contact,
+      links: [
+        ...contact.links,
+        {
+          label: '',
+          url: '',
+        },
+      ],
+    });
+  };
+
+  const confirmDelete = () => {
+    const links = contact.links.filter((_, i) => i !== selectedLinkIndex);
+
+    onChange({
+      ...contact,
+      links,
+    });
+
+    setOpen(false);
+    setSelectedLinkIndex(-1);
+  };
+
   return (
-    <Stack gap={1.5}>
-      <Typography variant="h6">{t('cv.documentContact')}</Typography>
-      <Grid container spacing={1.5} data-testid="cv-contact-fields-grid">
+    <Stack spacing={2}>
+      <CvDialog open={open} onClose={onClose} onDelete={confirmDelete} />
+
+      <Typography variant="h6">
+        {t('cv.documentContact')}
+      </Typography>
+
+      <Grid container spacing={2}>
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
+            fullWidth
             label={t('cv.contactName')}
             value={contact.name}
             onChange={(e) => updateField('name', e.target.value)}
             disabled={disabled}
-            required
-            fullWidth
           />
         </Grid>
+
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
+            fullWidth
             label={t('cv.contactHeadline')}
-            value={contact.headline ?? ''}
+            value={contact.headline || ''}
             onChange={(e) => updateField('headline', e.target.value)}
             disabled={disabled}
-            fullWidth
           />
         </Grid>
+
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
+            fullWidth
             label={t('cv.contactEmail')}
-            value={contact.email ?? ''}
+            value={contact.email || ''}
             onChange={(e) => updateField('email', e.target.value)}
             disabled={disabled}
-            required
-            fullWidth
           />
         </Grid>
+
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
+            fullWidth
             label={t('cv.contactPhone')}
-            value={contact.phone ?? ''}
+            value={contact.phone || ''}
             onChange={(e) => updateField('phone', e.target.value)}
             disabled={disabled}
-            fullWidth
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6 }}>
+
+        <Grid size={{ xs: 12 }}>
           <TextField
+            fullWidth
             label={t('cv.contactLocation')}
-            value={contact.location ?? ''}
+            value={contact.location || ''}
             onChange={(e) => updateField('location', e.target.value)}
             disabled={disabled}
-            fullWidth
           />
         </Grid>
       </Grid>
 
       {contact.links.map((link, index) => (
-        <Stack key={index} direction="row" gap={1} alignItems="flex-start">
+        <Stack key={index} direction="row" spacing={1}>
           <TextField
+            fullWidth
             label={t('cv.contactLinkLabel')}
             value={link.label}
-            onChange={(e) => updateLink(index, 'label', e.target.value)}
+            onChange={(e) =>
+              updateLink(index, 'label', e.target.value)
+            }
             disabled={disabled}
-            fullWidth
           />
+
           <TextField
+            fullWidth
             label={t('cv.contactLinkUrl')}
             value={link.url}
-            onChange={(e) => updateLink(index, 'url', e.target.value)}
+            onChange={(e) =>
+              updateLink(index, 'url', e.target.value)
+            }
             disabled={disabled}
-            fullWidth
           />
+
           <IconButton
-            aria-label={t('cv.removeItem')}
-            onClick={() => removeLink(index)}
+            onClick={() => openDeleteDialog(index)}
             disabled={disabled}
           >
             <DeleteOutlineIcon />
@@ -138,35 +179,11 @@ const CvContactSectionEditor = ({ contact, onChange, disabled = false }: Props) 
         </Stack>
       ))}
 
-      {draftLink && (
-        <Stack direction="row" gap={1} alignItems="flex-start">
-          <TextField
-            label={t('cv.contactLinkLabel')}
-            value={draftLink.label}
-            onChange={(e) => updateDraft('label', e.target.value)}
-            onBlur={commitDraft}
-            disabled={disabled}
-            fullWidth
-          />
-          <TextField
-            label={t('cv.contactLinkUrl')}
-            value={draftLink.url}
-            onChange={(e) => updateDraft('url', e.target.value)}
-            onBlur={commitDraft}
-            disabled={disabled}
-            fullWidth
-          />
-          <IconButton
-            aria-label={t('cv.removeItem')}
-            onClick={cancelDraft}
-            disabled={disabled}
-          >
-            <DeleteOutlineIcon />
-          </IconButton>
-        </Stack>
-      )}
-
-      <Button onClick={addLink} disabled={disabled || Boolean(draftLink)} sx={{ alignSelf: 'flex-start' }}>
+      <Button
+        onClick={addLink}
+        disabled={disabled}
+        sx={{ alignSelf: 'flex-start' }}
+      >
         {t('cv.addContactLink')}
       </Button>
     </Stack>

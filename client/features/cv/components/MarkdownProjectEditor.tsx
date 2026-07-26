@@ -18,7 +18,7 @@ const MarkdownProjectEditor = ({ value, onChange, label }: Props) => {
   const theme = useThemeStore((state) => state.theme);
   const labelId = useId();
   const editorId = useId();
-  const resolvedLabel = label ?? t('profile.descriptionMarkdown');
+  const resolvedLabel = label || t('profile.descriptionMarkdown');
 
   const toolbarCommands = [
     {

@@ -17,7 +17,7 @@ const CvPreviewPanel = ({ templateKey, content, highlightedSection }: Props) => 
     const target = document.querySelector<HTMLElement>(
       `[data-testid="cv-preview-${highlightedSection}"]`,
     );
-    if (typeof target?.scrollIntoView !== 'function') return;
+    if (!target) return;
     target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }, [highlightedSection]);
 

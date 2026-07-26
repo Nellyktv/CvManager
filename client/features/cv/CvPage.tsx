@@ -37,7 +37,6 @@ const CvPage = () => {
     publish,
     reload,
     retrySave,
-    retryAction,
   } = useCvWorkspace(id);
 
   const {
@@ -152,7 +151,6 @@ const CvPage = () => {
             });
           }}
           onRetrySave={saveError ? () => void retrySave() : undefined}
-          onRetryAction={actionError ? () => void retryAction() : undefined}
         />
       </Box>
 

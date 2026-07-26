@@ -17,7 +17,7 @@ import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import {
-  FormSchema,
+  createSignupSchema,
   type SignupFormFields,
 } from '../../shared/utils/shemas';
 import { fieldsRegistration } from './dataAuth/signupFields';
@@ -49,13 +49,24 @@ const SignupForm = ({
   const setIsAuth = useUserStore((state) => state.setIsAuth);
   const setUser = useUserStore((state) => state.setUser);
 
+  const schema = createSignupSchema({
+    nameRequired: t('auth.nameRequired'),
+    surNameRequired: t('auth.surNameRequired'),
+    invalidEmail: t('auth.invalidEmail'),
+    passwordMinLength: t('auth.passwordMinLength'),
+    passwordNeedsUppercase: t('auth.passwordNeedsUppercase'),
+    passwordNeedsNumber: t('auth.passwordNeedsNumber'),
+    confirmPasswordRequired: t('auth.confirmPasswordRequired'),
+    passwordsDontMatch: t('auth.passwordsDontMatch'),
+  });
+
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
   } = useForm<SignupFormFields>({
-    resolver: zodResolver(FormSchema),
+    resolver: zodResolver(schema),
   });
 
   const onSubmit: SubmitHandler<SignupFormFields> = async (data) => {

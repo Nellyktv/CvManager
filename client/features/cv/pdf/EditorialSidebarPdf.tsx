@@ -3,6 +3,7 @@ import { Document, Link, Page, StyleSheet, Text, View } from '@react-pdf/rendere
 import type { CvContent } from '../../../shared/types/cv';
 import { formatCvDateRange } from '../../../shared/utils/formatDate';
 import { groupSkills } from '../preview/groupSkills';
+import { isSafeUrl } from '../../../shared/utils/isSafeUrl';
 import { markdownToPdf } from './markdownToPdf';
 
 type Props = {
@@ -16,17 +17,30 @@ type Props = {
   locale: 'en' | 'ru';
 };
 
+const COLORS = {
+  pageText: '#1a1a1a',
+  sidebarBg: '#1f3a4c',
+  sidebarText: '#f4f8fb',
+  mainBg: '#ffffff',
+  sidebarHeading: '#d7e6ef',
+  accentText: '#3d5a6c',
+  mainHeadingBorder: '#c5d5e0',
+  darkText: '#152937',
+  sidebarLink: '#9ed0ea',
+  metaText: '#4a6070',
+};
+
 const styles = StyleSheet.create({
   page: {
     flexDirection: 'row',
     fontFamily: 'Helvetica',
     fontSize: 9,
-    color: '#1a1a1a',
+    color: COLORS.pageText,
   },
   sidebar: {
     width: '32%',
-    backgroundColor: '#1f3a4c',
-    color: '#f4f8fb',
+    backgroundColor: COLORS.sidebarBg,
+    color: COLORS.sidebarText,
     paddingHorizontal: 14,
     paddingVertical: 20,
   },
@@ -34,14 +48,14 @@ const styles = StyleSheet.create({
     width: '68%',
     paddingHorizontal: 18,
     paddingVertical: 20,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.mainBg,
   },
   sectionHeading: {
     fontSize: 8,
     fontFamily: 'Helvetica-Bold',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
-    color: '#d7e6ef',
+    color: COLORS.sidebarHeading,
     marginBottom: 6,
   },
   mainHeading: {
@@ -49,37 +63,37 @@ const styles = StyleSheet.create({
     fontFamily: 'Helvetica-Bold',
     letterSpacing: 0.6,
     textTransform: 'uppercase',
-    color: '#3d5a6c',
+    color: COLORS.accentText,
     borderBottomWidth: 1,
-    borderBottomColor: '#c5d5e0',
+    borderBottomColor: COLORS.mainHeadingBorder,
     paddingBottom: 4,
     marginBottom: 10,
   },
   name: {
     fontSize: 20,
     fontFamily: 'Helvetica-Bold',
-    color: '#152937',
+    color: COLORS.darkText,
     marginBottom: 4,
   },
   headline: {
     fontSize: 11,
-    color: '#3d5a6c',
+    color: COLORS.accentText,
     marginBottom: 14,
   },
   sidebarText: {
     fontSize: 9,
-    color: '#f4f8fb',
+    color: COLORS.sidebarText,
     marginBottom: 3,
   },
   sidebarLink: {
     fontSize: 9,
-    color: '#9ed0ea',
+    color: COLORS.sidebarLink,
     textDecoration: 'none',
     marginBottom: 2,
   },
   mainLink: {
     fontSize: 9,
-    color: '#152937',
+    color: COLORS.darkText,
     textDecoration: 'underline',
     marginBottom: 2,
   },
@@ -92,12 +106,12 @@ const styles = StyleSheet.create({
   projectTitle: {
     fontSize: 11,
     fontFamily: 'Helvetica-Bold',
-    color: '#152937',
+    color: COLORS.darkText,
     marginBottom: 2,
   },
   meta: {
     fontSize: 9,
-    color: '#4a6070',
+    color: COLORS.metaText,
     marginBottom: 3,
   },
   section: {
@@ -123,11 +137,17 @@ const EditorialSidebarPdf = ({ content, labels, locale }: Props) => {
             {contact.location ? (
               <Text style={styles.sidebarText}>{contact.location}</Text>
             ) : null}
-            {contact.links.map((link) => (
-              <Link key={link.url} src={link.url} style={styles.sidebarLink}>
-                {link.label}
-              </Link>
-            ))}
+            {contact.links.map((link) =>
+              isSafeUrl(link.url) ? (
+                <Link key={link.url} src={link.url} style={styles.sidebarLink}>
+                  {link.label}
+                </Link>
+              ) : (
+                <Text key={link.url} style={styles.sidebarLink}>
+                  {link.label}
+                </Text>
+              ),
+            )}
           </View>
 
           {skillBuckets.length > 0 ? (
@@ -208,11 +228,17 @@ const EditorialSidebarPdf = ({ content, labels, locale }: Props) => {
                         </Text>
                       ) : null}
                     </View>
-                    {project.links.map((link) => (
-                      <Link key={link.url} src={link.url} style={styles.mainLink}>
-                        {link.label}
-                      </Link>
-                    ))}
+                    {project.links.map((link) =>
+                      isSafeUrl(link.url) ? (
+                        <Link key={link.url} src={link.url} style={styles.mainLink}>
+                          {link.label}
+                        </Link>
+                      ) : (
+                        <Text key={link.url} style={styles.mainLink}>
+                          {link.label}
+                        </Text>
+                      ),
+                    )}
                     {markdownToPdf(project.descriptionMarkdown)}
                   </View>
                 );

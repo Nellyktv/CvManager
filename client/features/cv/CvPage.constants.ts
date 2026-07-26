@@ -23,9 +23,11 @@ export const emptyCvContent = (): CvContent => ({
 
 export const DEFAULT_TEMPLATE_KEY: CvTemplateKey = 'editorial-sidebar';
 
+export type CvTemplateLabelKey = 'cv.templateEditorialSidebar' | 'cv.templateStructuredMinimal';
+
 export const CV_TEMPLATE_OPTIONS: Array<{
   key: CvTemplateKey;
-  labelKey: 'cv.templateEditorialSidebar' | 'cv.templateStructuredMinimal';
+  labelKey: CvTemplateLabelKey;
 }> = [
   { key: 'editorial-sidebar', labelKey: 'cv.templateEditorialSidebar' },
   { key: 'structured-minimal', labelKey: 'cv.templateStructuredMinimal' },
@@ -33,7 +35,7 @@ export const CV_TEMPLATE_OPTIONS: Array<{
 
 export const templateLabelKey = (
   templateKey: CvTemplateKey | string | null | undefined,
-): (typeof CV_TEMPLATE_OPTIONS)[number]['labelKey'] => {
+): CvTemplateLabelKey => {
   const match = CV_TEMPLATE_OPTIONS.find((option) => option.key === templateKey);
   return match?.labelKey ?? 'cv.templateEditorialSidebar';
 };

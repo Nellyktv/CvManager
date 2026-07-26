@@ -17,7 +17,8 @@ const CvSkillsSectionEditor = ({ skills, onChange, disabled = false }: Props) =>
   const { t } = useTranslation();
 
   const updateSkill = (index: number, patch: Partial<CvSkill>) => {
-    onChange(skills.map((skill, i) => (i === index ? { ...skill, ...patch } : skill)));
+    const nextSkills = skills.map((skill, i) => (i === index ? { ...skill, ...patch } : skill));
+    onChange(nextSkills);
   };
 
   const addSkill = () => {

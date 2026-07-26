@@ -131,46 +131,23 @@ const AdminPage = () => {
     });
   };
 
-  const loadUsers = async () => {
-    try {
-      const response = await api.get(USERS_ROUTE);
-      setUsers(toUserRows(response.data.allUsers, currentUser.id));
-    } catch (error) {
-      showError(error);
-    } finally {
-      setIsLoading(false);
-    }
+  const loadUsers = () => {
+    api
+      .get(USERS_ROUTE)
+      .then((response) => {
+        setUsers(toUserRows(response.data.allUsers, currentUser.id));
+      })
+      .catch((error) => {
+        showError(error);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   useEffect(() => {
-    let cancelled = false;
-
-    const fetchUsers = async () => {
-      try {
-        const response = await api.get(USERS_ROUTE);
-        if (!cancelled) {
-          setUsers(toUserRows(response.data.allUsers, currentUser.id));
-        }
-      } catch (error) {
-        console.error(error);
-        if (!cancelled) {
-          enqueueSnackbar(t('common.error'), {
-            variant: 'error',
-          });
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    void fetchUsers();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [currentUser.id, enqueueSnackbar, t]);
+    loadUsers();
+  }, [currentUser.id]);
 
   const handleDelete = async () => {
     let hasError = false;

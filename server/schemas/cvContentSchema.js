@@ -205,14 +205,6 @@ export const validateCvContent = (content) => cvContentSchema.parse(content);
 
 export const validateCvUpdate = (payload) => cvUpdateSchema.parse(payload);
 
-export const sanitizeLegacyMarkdown = (value) => {
-  if (value == null) return '';
-  const text = String(value);
-  return text.replace(TAG_CANDIDATE_RE, (full, name, offset) =>
-    isActualHtmlTag(text, full, name, offset) ? '' : full,
-  );
-};
-
 const dateOnly = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { error: 'Invalid date' });
 
 export const isValidDateRange = (data) => {
@@ -267,7 +259,6 @@ const projectFields = {
   links: z.array(cvLinkSchema).nullable().optional(),
   displayOrder: z.int().nullable().optional(),
   descriptionMarkdown: markdownText.nullable().optional(),
-  description: markdownText.nullable().optional(),
 };
 
 export const projectCreateSchema = z

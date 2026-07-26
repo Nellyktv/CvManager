@@ -5,7 +5,6 @@ const createPosition = async (req, res) => {
   const {
     title,
     description,
-    visibility,
     userIdCreator,
     attributeIds,
     allowedCandidateIds,
@@ -14,7 +13,6 @@ const createPosition = async (req, res) => {
   const position = await Position.create({
     title,
     description,
-    visibility,
     userIdCreator,
   });
 
@@ -58,7 +56,6 @@ const updatePosition = async (req, res) => {
   const {
     title,
     description,
-    visibility,
     attributeIds,
     allowedCandidateIds,
   } = req.body;
@@ -72,7 +69,6 @@ const updatePosition = async (req, res) => {
   await position.update({
     title,
     description,
-    visibility,
   });
 
   if (attributeIds && attributeIds.length) {

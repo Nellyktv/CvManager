@@ -15,14 +15,12 @@ const run = async () => {
     const position1 = await Position.create({
         title: 'Frontend Developer',
         description: 'React, TypeScript',
-        visibility: 'public',
         userIdCreator: recruiter.id,
     });
 
     const position2 = await Position.create({
         title: 'Business Analyst',
         description: 'Requirements, GPA',
-        visibility: 'public',
         userIdCreator: recruiter.id,
     });
 
@@ -69,7 +67,6 @@ const run = async () => {
     const project = await Project.create({
         userId: fixtureCandidate.id,
         title: 'CV Manager',
-        description: 'Legacy plain-text project summary',
         role: 'Full-stack developer',
         startDate: '2024-01-01',
         endDate: '2025-12-31',

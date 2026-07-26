@@ -25,7 +25,3 @@ export const fieldsRegistration: FieldConfig[] = [
     isPassword: true,
   },
 ];
-
-export const signInData = fieldsRegistration.filter(
-  (el) => el.name === 'email' || el.name === 'password',
-);

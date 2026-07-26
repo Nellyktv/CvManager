@@ -1,12 +1,10 @@
-import { useState } from 'react';
 import { Button, IconButton, Stack, TextField, Typography } from '@mui/material';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { useTranslation } from 'react-i18next';
 
-import type { CvLink, CvProject } from '../../../../shared/types/cv';
-import { cvLinkSchema } from '../../../../shared/utils/cvSchemas';
+import type { CvProject } from '../../../../shared/types/cv';
 import { moveItem } from '../../../../shared/utils/moveItem';
 import MarkdownProjectEditor from '../MarkdownProjectEditor';
 
@@ -22,21 +20,19 @@ const emptyProject = (): CvProject => ({
   descriptionMarkdown: '',
 });
 
-const emptyDraft = (): CvLink => ({ label: '', url: '' });
-
 const CvProjectsSectionEditor = ({
   projects,
   onChange,
   disabled = false,
 }: Props) => {
   const { t } = useTranslation();
-  const [draftLinks, setDraftLinks] = useState<Record<number, CvLink | undefined>>({});
 
   const updateProject = (index: number, patch: Partial<CvProject>) => {
-    onChange(projects.map((project, i) => (i === index ? { ...project, ...patch } : project)));
+    const nextProjects = projects.map((project, i) => (i === index ? { ...project, ...patch } : project));
+    onChange(nextProjects);
   };
 
-  const updateLink = (projectIndex: number, linkIndex: number, key: keyof CvLink, value: string) => {
+  const updateLink = (projectIndex: number, linkIndex: number, key: 'label' | 'url', value: string) => {
     const project = projects[projectIndex];
     const links = project.links.map((link, i) =>
       i === linkIndex ? { ...link, [key]: value } : link,
@@ -45,35 +41,9 @@ const CvProjectsSectionEditor = ({
   };
 
   const addLink = (projectIndex: number) => {
-    if (disabled || draftLinks[projectIndex]) return;
-    setDraftLinks((prev) => ({ ...prev, [projectIndex]: emptyDraft() }));
-  };
-
-  const updateDraft = (projectIndex: number, key: keyof CvLink, value: string) => {
-    setDraftLinks((prev) => {
-      const draft = prev[projectIndex];
-      if (!draft) return prev;
-      return { ...prev, [projectIndex]: { ...draft, [key]: value } };
-    });
-  };
-
-  const commitDraft = (projectIndex: number) => {
-    const draft = draftLinks[projectIndex];
-    if (!draft || !cvLinkSchema.safeParse(draft).success) return;
     const project = projects[projectIndex];
-    updateProject(projectIndex, { links: [...project.links, draft] });
-    setDraftLinks((prev) => {
-      const next = { ...prev };
-      delete next[projectIndex];
-      return next;
-    });
-  };
-
-  const cancelDraft = (projectIndex: number) => {
-    setDraftLinks((prev) => {
-      const next = { ...prev };
-      delete next[projectIndex];
-      return next;
+    updateProject(projectIndex, {
+      links: [...project.links, { label: '', url: '' }],
     });
   };
 
@@ -90,15 +60,6 @@ const CvProjectsSectionEditor = ({
 
   const removeProject = (index: number) => {
     onChange(projects.filter((_, i) => i !== index));
-    setDraftLinks((prev) => {
-      const next: Record<number, CvLink | undefined> = {};
-      for (const [key, value] of Object.entries(prev)) {
-        const from = Number(key);
-        if (from === index || value === undefined) continue;
-        next[from > index ? from - 1 : from] = value;
-      }
-      return next;
-    });
   };
 
   return (
@@ -200,37 +161,9 @@ const CvProjectsSectionEditor = ({
             </Stack>
           ))}
 
-          {draftLinks[index] && (
-            <Stack direction="row" gap={1} alignItems="flex-start">
-              <TextField
-                label={t('profile.projectLinkLabel')}
-                value={draftLinks[index]!.label}
-                onChange={(e) => updateDraft(index, 'label', e.target.value)}
-                onBlur={() => commitDraft(index)}
-                disabled={disabled}
-                fullWidth
-              />
-              <TextField
-                label={t('profile.projectLinkUrl')}
-                value={draftLinks[index]!.url}
-                onChange={(e) => updateDraft(index, 'url', e.target.value)}
-                onBlur={() => commitDraft(index)}
-                disabled={disabled}
-                fullWidth
-              />
-              <IconButton
-                aria-label={t('cv.removeItem')}
-                onClick={() => cancelDraft(index)}
-                disabled={disabled}
-              >
-                <DeleteOutlineIcon />
-              </IconButton>
-            </Stack>
-          )}
-
           <Button
             onClick={() => addLink(index)}
-            disabled={disabled || Boolean(draftLinks[index])}
+            disabled={disabled}
             sx={{ alignSelf: 'flex-start' }}
           >
             {t('profile.addProjectLink')}
@@ -238,7 +171,7 @@ const CvProjectsSectionEditor = ({
 
           {!disabled && (
             <MarkdownProjectEditor
-              value={project.descriptionMarkdown ?? ''}
+              value={project.descriptionMarkdown || ''}
               onChange={(value) => updateProject(index, { descriptionMarkdown: value })}
             />
           )}

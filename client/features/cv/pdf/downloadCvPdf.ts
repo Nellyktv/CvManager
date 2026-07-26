@@ -1,5 +1,6 @@
 import { createElement, type ReactElement } from 'react';
 import { pdf, type DocumentProps } from '@react-pdf/renderer';
+import { saveAs } from 'file-saver';
 
 import type { CvContent, CvTemplateKey } from '../../../shared/types/cv';
 import CvPdfRouter, { type CvPdfLabels } from './CvPdfRouter';
@@ -19,21 +20,6 @@ const DEFAULT_LABELS: CvPdfLabels = {
   projects: 'Projects',
 };
 
-const triggerBrowserDownload = (blob: Blob, fileName: string) => {
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = fileName;
-  anchor.rel = 'noopener';
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  // Revoke after the browser has a chance to start the download.
-  setTimeout(() => {
-    URL.revokeObjectURL(url);
-  }, 0);
-};
-
 export const downloadCvPdf = async ({
   templateKey,
   content,
@@ -49,7 +35,7 @@ export const downloadCvPdf = async ({
   }) as ReactElement<DocumentProps>;
   const instance = pdf(document);
   const blob = await instance.toBlob();
-  triggerBrowserDownload(blob, fileName);
+  saveAs(blob, fileName);
 };
 
 /** Build a filesystem-safe PDF name from owner + position. */

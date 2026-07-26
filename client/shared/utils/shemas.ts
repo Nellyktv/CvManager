@@ -1,40 +1,76 @@
 import { z } from 'zod';
 
-export const PasswordSchema = z.string().min(8, "Минимум 8 символов")
-  .regex(/[A-Z]/, "Минимум 1 заглавная буква").regex(/[0-9]/, "Минимум 1 цифра");
+export type SignupFormMessages = {
+  nameRequired: string;
+  surNameRequired: string;
+  invalidEmail: string;
+  passwordMinLength: string;
+  passwordNeedsUppercase: string;
+  passwordNeedsNumber: string;
+  confirmPasswordRequired: string;
+  passwordsDontMatch: string;
+};
 
-export const confirmPasswordSchema = z.string().min(1, { error: "Пароль не может быть пустым" });
+export const createSignupSchema = (messages: SignupFormMessages) =>
+  z
+    .object({
+      name: z.string().min(1, { error: messages.nameRequired }),
+      surName: z.string().min(1, { error: messages.surNameRequired }),
+      email: z.email(messages.invalidEmail),
+      password: z
+        .string()
+        .min(8, messages.passwordMinLength)
+        .regex(/[A-Z]/, messages.passwordNeedsUppercase)
+        .regex(/[0-9]/, messages.passwordNeedsNumber),
+      confirmPassword: z.string().min(1, { error: messages.confirmPasswordRequired }),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      path: ['confirmPassword'],
+      message: messages.passwordsDontMatch,
+    });
 
-export const emailSchema = z.email("Введите правильный email");
+export type SignupFormFields = {
+  name: string;
+  surName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+};
 
-export const FormSchema = z
-  .object({
-    name: z.string().min(1,{error:'Пожалуйста,введите ваше имя'}),
-    surName: z.string().min(1,{error:'Пожалуйста,введите вашу фамилию'}),
-    email: emailSchema,
-    password: PasswordSchema,
-    confirmPassword: confirmPasswordSchema,
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    path: ['confirmPassword'],
-    message: 'Пароли не совпадают',
+export type LoginFormMessages = {
+  invalidEmail: string;
+  passwordMinLength: string;
+  passwordNeedsUppercase: string;
+  passwordNeedsNumber: string;
+};
+
+export const createLoginSchema = (messages: LoginFormMessages) =>
+  z.object({
+    email: z.email(messages.invalidEmail),
+    password: z
+      .string()
+      .min(8, messages.passwordMinLength)
+      .regex(/[A-Z]/, messages.passwordNeedsUppercase)
+      .regex(/[0-9]/, messages.passwordNeedsNumber),
   });
 
-export type SignupFormFields = z.infer<typeof FormSchema>;
+export type LoginFormFields = {
+  email: string;
+  password: string;
+};
 
-export const FormSchemaLogin = z.object({
-  email: emailSchema,
-  password: PasswordSchema,
-});
+export type ChangePasswordMessages = {
+  passwordRequired: string;
+  passwordsDontMatch: string;
+};
 
-export type LoginFormFields = z.infer<typeof FormSchemaLogin>;
-
-export const ChangePasswordSchema = z
-  .object({
-    newPassword: confirmPasswordSchema,
-    confirmPassword: confirmPasswordSchema,
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    path: ['confirmPassword'],
-    message: 'Пароли не совпадают',
-  });
+export const createChangePasswordSchema = (messages: ChangePasswordMessages) =>
+  z
+    .object({
+      newPassword: z.string().min(1, { error: messages.passwordRequired }),
+      confirmPassword: z.string().min(1, { error: messages.passwordRequired }),
+    })
+    .refine((data) => data.newPassword === data.confirmPassword, {
+      path: ['confirmPassword'],
+      message: messages.passwordsDontMatch,
+    });

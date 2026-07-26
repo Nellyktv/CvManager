@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import type { CvContent } from '../../../shared/types/cv';
 import { formatCvDateRange } from '../../../shared/utils/formatDate';
+import { isSafeUrl } from '../../../shared/utils/isSafeUrl';
 import type { CvEditorSection } from '../CvPage.constants';
 import { cvDocumentLocale } from './cvDocumentLocale';
 import CvDocumentFrame from './CvDocumentFrame';
@@ -104,15 +105,19 @@ const EditorialSidebarPreview = ({
               <Box component="ul" sx={{ m: 0, pl: 1.5, listStyle: 'disc' }}>
                 {contact.links.map((link) => (
                   <Box component="li" key={link.url} sx={{ mb: 0.35, fontSize: '0.8rem' }}>
-                    <Box
-                      component="a"
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      sx={{ color: '#9ed0ea', textDecoration: 'none' }}
-                    >
-                      {link.label}
-                    </Box>
+                    {isSafeUrl(link.url) ? (
+                      <Box
+                        component="a"
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{ color: '#9ed0ea', textDecoration: 'none' }}
+                      >
+                        {link.label}
+                      </Box>
+                    ) : (
+                      link.label
+                    )}
                   </Box>
                 ))}
               </Box>
@@ -247,9 +252,13 @@ const EditorialSidebarPreview = ({
                     >
                       {project.links.map((link) => (
                         <Box component="li" key={link.url}>
-                          <a href={link.url} target="_blank" rel="noopener noreferrer">
-                            {link.label}
-                          </a>
+                          {isSafeUrl(link.url) ? (
+                            <a href={link.url} target="_blank" rel="noopener noreferrer">
+                              {link.label}
+                            </a>
+                          ) : (
+                            link.label
+                          )}
                         </Box>
                       ))}
                     </Box>

@@ -1,12 +1,12 @@
 import 'dotenv/config';
 import { fileURLToPath } from 'url';
 import sequelize from '../dB.js';
-import { User, CandidateProfile, Project, Cv } from '../models/models.js';
-import { sanitizeLegacyMarkdown, validateCvContent } from '../schemas/cvContentSchema.js';
+import { User, CandidateProfile, Cv } from '../models/models.js';
+import { validateCvContent } from '../schemas/cvContentSchema.js';
 import {
   buildSnapshotFromProfile,
   isSnapshotComplete,
-} from '../service/cv-snapshot-service.js';
+} from '../controllers/cvSnapshot.js';
 
 export async function backfillCvSnapshots() {
   const candidates = await User.findAll({ where: { role: 'CANDIDATE' } });
@@ -19,15 +19,6 @@ export async function backfillCvSnapshots() {
     await CandidateProfile.create({ userId: candidate.id });
     profileUserIds.add(candidate.id);
     profilesCreated += 1;
-  }
-
-  const projects = await Project.findAll({ where: { descriptionMarkdown: null } });
-  let projectsMigrated = 0;
-  for (const project of projects) {
-    await project.update({
-      descriptionMarkdown: sanitizeLegacyMarkdown(project.description),
-    });
-    projectsMigrated += 1;
   }
 
   const cvs = await Cv.findAll({ where: { content: null } });
@@ -55,7 +46,7 @@ export async function backfillCvSnapshots() {
     cvsBackfilled += 1;
   }
 
-  return { profilesCreated, projectsMigrated, cvsBackfilled };
+  return { profilesCreated, cvsBackfilled };
 }
 
 const isDirectRun = process.argv[1] === fileURLToPath(import.meta.url);

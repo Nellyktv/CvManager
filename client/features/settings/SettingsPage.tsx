@@ -20,7 +20,7 @@ import { useSnackbar } from 'notistack';
 import { useThemeStore } from '../../store/ThemeStore';
 import useUserStore from '../../store/UserStore';
 import { api } from '../../api/axios.api';
-import { ChangePasswordSchema } from '../../shared/utils/shemas';
+import { createChangePasswordSchema } from '../../shared/utils/shemas';
 
 const SettingsPage = () => {
   const { t, i18n } = useTranslation();
@@ -39,7 +39,11 @@ const SettingsPage = () => {
   };
 
   const handleChangePassword = async () => {
-    const result = ChangePasswordSchema.safeParse({ newPassword, confirmPassword });
+    const changePasswordSchema = createChangePasswordSchema({
+      passwordRequired: t('auth.confirmPasswordRequired'),
+      passwordsDontMatch: t('settings.passwordMismatch'),
+    });
+    const result = changePasswordSchema.safeParse({ newPassword, confirmPassword });
 
     if (!result.success) {
       enqueueSnackbar(t('settings.passwordMismatch'), { variant: 'error' });

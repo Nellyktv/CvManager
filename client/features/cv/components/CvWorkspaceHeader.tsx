@@ -30,7 +30,6 @@ type Props = {
   onPrint: () => void;
   onDownloadPdf: () => void;
   onRetrySave?: () => void;
-  onRetryAction?: () => void;
   onRetryPdfExport?: () => void;
 };
 
@@ -62,7 +61,6 @@ const CvWorkspaceHeader = ({
   onPrint,
   onDownloadPdf,
   onRetrySave,
-  onRetryAction,
   onRetryPdfExport,
 }: Props) => {
   const { t } = useTranslation();
@@ -144,20 +142,7 @@ const CvWorkspaceHeader = ({
         </Alert>
       )}
 
-      {actionError && (
-        <Alert
-          severity="error"
-          action={
-            onRetryAction ? (
-              <Button color="inherit" size="small" onClick={onRetryAction}>
-                {t('cv.retryAction')}
-              </Button>
-            ) : undefined
-          }
-        >
-          {actionError}
-        </Alert>
-      )}
+      {actionError && <Alert severity="error">{actionError}</Alert>}
 
       {pdfExportStatus === 'error' && pdfExportError && (
         <Alert

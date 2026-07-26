@@ -1,8 +1,8 @@
-import { Paper, Typography, Box, Button, Stack, Alert, Link } from '@mui/material';
+import { Paper, Typography, Box, Button, Stack } from '@mui/material';
 import { DataGrid, type GridColDef, type GridRowId } from '@mui/x-data-grid';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
-import { useSearchParams, Link as RouterLink } from 'react-router';
+import { useSearchParams, useNavigate } from 'react-router';
 import { useState } from 'react';
 
 import CrudToolbar from '../../shared/components/toolbars/CrudToolbar';
@@ -31,6 +31,7 @@ import PositionCvsDialog from './PositionCvsDialog';
 const PositionPage = () => {
   const { t } = useTranslation();
   const { enqueueSnackbar } = useSnackbar();
+  const navigate = useNavigate();
   const role = useUserStore((state) => state.user.role);
   const [searchParams] = useSearchParams();
   const tag = searchParams.get('tag');
@@ -47,12 +48,6 @@ const PositionPage = () => {
       headerName: t('positions.columnDescription'),
       flex: 2,
       minWidth: 220,
-    },
-    {
-      field: 'visibility',
-      headerName: t('positions.columnVisibility'),
-      flex: 1,
-      minWidth: 130,
     },
     {
       field: 'updatedAt',
@@ -95,7 +90,6 @@ const PositionPage = () => {
   const [selectedIds, setSelectedIds] = useState<GridRowId[]>([]);
   const [cvsDialogOpen, setCvsDialogOpen] = useState(false);
   const [positionCvs, setPositionCvs] = useState<PositionCv[]>([]);
-  const [generatedCvId, setGeneratedCvId] = useState<number | null>(null);
 
   const formFields = [
     {
@@ -107,11 +101,6 @@ const PositionPage = () => {
       label: t('positions.fieldDescription'),
       value: form.description,
       onChange: (value: string) => setForm({ ...form, description: value }),
-    },
-    {
-      label: t('positions.fieldVisibility'),
-      value: form.visibility,
-      onChange: (value: string) => setForm({ ...form, visibility: value }),
     },
   ];
 
@@ -134,7 +123,6 @@ const PositionPage = () => {
     openEdit(position.id, {
       title: position.title,
       description: position.description,
-      visibility: position.visibility,
       attributeIds: position.attributes ? position.attributes.map((el) => el.id) : [],
       allowedCandidateIds: position.allowedCandidates ? position.allowedCandidates.map((el) => el.id) : [],
     });
@@ -153,7 +141,6 @@ const PositionPage = () => {
     await createItem({
       title: `${position.title} (copy)`,
       description: position.description,
-      visibility: position.visibility,
       attributeIds: position.attributes ? position.attributes.map((el) => el.id) : [],
       allowedCandidateIds: position.allowedCandidates ? position.allowedCandidates.map((el) => el.id) : [],
     });
@@ -181,7 +168,7 @@ const PositionPage = () => {
         positionId: selectedIds[0],
       });
 
-      setGeneratedCvId(response.data.cv.id);
+      navigate(`/cv/${response.data.cv.id}`);
     } catch (error) {
       console.error('Failed to generate CV', error);
       enqueueSnackbar(t('common.error'), { variant: 'error' });
@@ -261,19 +248,6 @@ const PositionPage = () => {
               {t('cv.generate')}
             </Button>
           </Stack>
-        )}
-
-        {generatedCvId && (
-          <Alert
-            severity="success"
-            onClose={() => setGeneratedCvId(null)}
-            sx={{ mb: 2 }}
-          >
-            {t('cv.generatedGoToProfile')}{' '}
-            <Link component={RouterLink} to={`/cv/${generatedCvId}`}>
-              {t('cv.goToProfile')}
-            </Link>
-          </Alert>
         )}
 
         <Box sx={{ height: 400, width: '100%' }}>

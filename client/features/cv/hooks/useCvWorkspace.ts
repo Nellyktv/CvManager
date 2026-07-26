@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSnackbar } from 'notistack';
 import { useTranslation } from 'react-i18next';
 
@@ -9,17 +9,12 @@ import {
   updateCv,
   type CvRecord,
   type CvSection,
-  type CvUpdate,
 } from '../../../api/cv.api';
 import type { CvContent, CvTemplateKey } from '../../../shared/types/cv';
 import useUserStore from '../../../store/UserStore';
 import { DEFAULT_TEMPLATE_KEY, emptyCvContent } from '../CvPage.constants';
 
 export const CV_SAVE_DEBOUNCE_MS = 500;
-
-type PendingAction =
-  | { type: 'refresh'; sections: CvSection[] }
-  | { type: 'publish' };
 
 const canMutateCv = (cv: CvRecord | null, userId: number, role: string) =>
   Boolean(cv && (cv.userId === userId || role === 'ADMIN'));
@@ -31,16 +26,6 @@ const apiErrorMessage = (err: unknown, fallback: string) => {
   return typeof message === 'string' && message.trim() ? message : fallback;
 };
 
-const mergeCvRecord = (current: CvRecord | null, next: CvRecord) =>
-  current
-    ? {
-        ...current,
-        ...next,
-        position: next.position ?? current.position,
-        user: next.user ?? current.user,
-      }
-    : next;
-
 export const useCvWorkspace = (id: string | undefined) => {
   const { t } = useTranslation();
   const { enqueueSnackbar } = useSnackbar();
@@ -50,364 +35,136 @@ export const useCvWorkspace = (id: string | undefined) => {
   const [content, setContent] = useState<CvContent | null>(null);
   const [templateKey, setTemplateKey] = useState<CvTemplateKey>(DEFAULT_TEMPLATE_KEY);
   const [loading, setLoading] = useState(Boolean(id));
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(id ? null : t('cv.loadError'));
   const [saveError, setSaveError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
-
-  const contentRef = useRef<CvContent | null>(null);
-  const templateKeyRef = useRef<CvTemplateKey>(DEFAULT_TEMPLATE_KEY);
-  const pendingRef = useRef<CvUpdate | null>(null);
-  const queueTailRef = useRef<Promise<void>>(Promise.resolve());
-  const saveFailedRef = useRef(false);
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const generationRef = useRef(0);
-  const workspaceIdRef = useRef(id);
-  const pendingActionRef = useRef<PendingAction | null>(null);
-  const cleanupFlushRef = useRef<Promise<unknown>>(Promise.resolve());
   const [observedId, setObservedId] = useState(id);
 
-  // Reset workspace UI state when the route id changes (render-time, not in an effect).
-  // Queue/flush refs stay untouched here so the previous effect cleanup can still flush.
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Reset the workspace to a loading state as soon as the CV id changes.
+  // Done here (during render), not in an effect, because the effect below
+  // only ever calls setState from inside a promise callback.
   if (observedId !== id) {
     setObservedId(id);
     setCv(null);
     setContent(null);
     setTemplateKey(DEFAULT_TEMPLATE_KEY);
     setLoading(Boolean(id));
-    setError(null);
+    setError(id ? null : t('cv.loadError'));
     setSaveError(null);
     setActionError(null);
-    setSaving(false);
-    setIsSaved(false);
   }
 
-  const bumpGeneration = useCallback(() => {
-    generationRef.current += 1;
-    return generationRef.current;
-  }, []);
+  const load = () => {
+    if (!id) return;
 
-  const clearDebounce = useCallback(() => {
-    if (debounceTimerRef.current !== null) {
-      clearTimeout(debounceTimerRef.current);
-      debounceTimerRef.current = null;
-    }
-  }, []);
-
-  const resetQueueState = useCallback(() => {
-    clearDebounce();
-    pendingRef.current = null;
-    saveFailedRef.current = false;
-    queueTailRef.current = Promise.resolve();
-    pendingActionRef.current = null;
-  }, [clearDebounce]);
-
-  const adoptCv = useCallback((next: CvRecord) => {
-    const nextContent = next.content ?? emptyCvContent();
-    const nextTemplate = next.templateKey ?? DEFAULT_TEMPLATE_KEY;
-    setCv((current) => mergeCvRecord(current, next));
-    setContent(nextContent);
-    setTemplateKey(nextTemplate);
-    contentRef.current = nextContent;
-    templateKeyRef.current = nextTemplate;
-  }, []);
-
-  const load = useCallback(async () => {
-    if (!id) {
-      setLoading(false);
-      setError(t('cv.loadError'));
-      return;
-    }
-
-    const generation = bumpGeneration();
-    resetQueueState();
-    setLoading(true);
-    setError(null);
-    setSaveError(null);
-    setActionError(null);
-    setSaving(false);
-    setIsSaved(false);
-
-    try {
-      await cleanupFlushRef.current.catch(() => undefined);
-      if (generation !== generationRef.current || workspaceIdRef.current !== id) return;
-      const data = await getCv(id);
-      if (generation !== generationRef.current || workspaceIdRef.current !== id) return;
-      adoptCv(data.cv);
-      setSaveError(null);
-      setActionError(null);
-      setIsSaved(false);
-    } catch {
-      if (generation !== generationRef.current || workspaceIdRef.current !== id) return;
-      setCv(null);
-      setContent(null);
-      setError(t('cv.loadError'));
-    } finally {
-      if (generation === generationRef.current && workspaceIdRef.current === id) {
-        setLoading(false);
-      }
-    }
-  }, [adoptCv, bumpGeneration, id, resetQueueState, t]);
-
-  useEffect(() => {
-    const generation = bumpGeneration();
-    workspaceIdRef.current = id;
-    resetQueueState();
-    contentRef.current = null;
-    templateKeyRef.current = DEFAULT_TEMPLATE_KEY;
-
-    if (!id) {
-      return;
-    }
-
-    void (async () => {
-      try {
-        await cleanupFlushRef.current.catch(() => undefined);
-        if (generation !== generationRef.current || workspaceIdRef.current !== id) return;
-        const data = await getCv(id);
-        if (generation !== generationRef.current || workspaceIdRef.current !== id) return;
-        adoptCv(data.cv);
+    getCv(id)
+      .then((data) => {
+        setCv(data.cv);
+        setContent(data.cv.content ?? emptyCvContent());
+        setTemplateKey(data.cv.templateKey ?? DEFAULT_TEMPLATE_KEY);
         setError(null);
-        setSaveError(null);
-        setActionError(null);
         setIsSaved(false);
-      } catch {
-        if (generation !== generationRef.current || workspaceIdRef.current !== id) return;
+      })
+      .catch(() => {
         setCv(null);
         setContent(null);
         setError(t('cv.loadError'));
-      } finally {
-        if (generation === generationRef.current && workspaceIdRef.current === id) {
-          setLoading(false);
-        }
-      }
-    })();
-
-    return () => {
-      const pendingPatch = pendingRef.current;
-      const flushId = workspaceIdRef.current;
-      clearDebounce();
-      debounceTimerRef.current = null;
-      if (flushId && pendingPatch) {
-        pendingRef.current = null;
-        cleanupFlushRef.current = updateCv(flushId, pendingPatch).catch(() => undefined);
-      }
-    };
-  }, [id, adoptCv, bumpGeneration, clearDebounce, resetQueueState, t]);
-
-  const processQueue = useCallback(() => {
-    const queuedForId = workspaceIdRef.current;
-    const generation = generationRef.current;
-
-    const run = queueTailRef.current
-      .catch(() => undefined)
-      .then(async () => {
-        if (!queuedForId) return;
-        if (generation !== generationRef.current || workspaceIdRef.current !== queuedForId) {
-          return;
-        }
-
-        while (pendingRef.current) {
-          if (generation !== generationRef.current || workspaceIdRef.current !== queuedForId) {
-            return;
-          }
-
-          const batch = pendingRef.current;
-          pendingRef.current = null;
-          setSaving(true);
-          setSaveError(null);
-
-          try {
-            if (batch.content !== undefined) {
-              const response = await updateCv(queuedForId, { content: batch.content });
-              if (generation !== generationRef.current || workspaceIdRef.current !== queuedForId) {
-                return;
-              }
-              setCv((current) => mergeCvRecord(current, response.cv));
-            }
-            if (batch.templateKey !== undefined) {
-              const response = await updateCv(queuedForId, { templateKey: batch.templateKey });
-              if (generation !== generationRef.current || workspaceIdRef.current !== queuedForId) {
-                return;
-              }
-              setCv((current) => mergeCvRecord(current, response.cv));
-              setTemplateKey(response.cv.templateKey ?? batch.templateKey);
-              templateKeyRef.current = response.cv.templateKey ?? batch.templateKey;
-            }
-            saveFailedRef.current = false;
-            setIsSaved(true);
-          } catch (err) {
-            if (generation !== generationRef.current || workspaceIdRef.current !== queuedForId) {
-              return;
-            }
-            saveFailedRef.current = true;
-            setIsSaved(false);
-            const newer = pendingRef.current as CvUpdate | null;
-            pendingRef.current = {
-              content: newer?.content ?? batch.content,
-              templateKey: newer?.templateKey ?? batch.templateKey,
-            };
-            setSaveError(apiErrorMessage(err, t('cv.saveError')));
-            throw new Error('save failed', { cause: err });
-          } finally {
-            if (generation === generationRef.current && workspaceIdRef.current === queuedForId) {
-              setSaving(false);
-            }
-          }
-        }
+      })
+      .finally(() => {
+        setLoading(false);
       });
+  };
 
-    queueTailRef.current = run;
-    void run.catch(() => undefined);
-    return run;
-  }, [t]);
+  useEffect(() => {
+    load();
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
-  const enqueueSave = useCallback(
-    (patch: CvUpdate) => {
-      const previous = pendingRef.current;
-      pendingRef.current = {
-        content: patch.content ?? previous?.content,
-        templateKey: patch.templateKey ?? previous?.templateKey,
-      };
-      setIsSaved(false);
-      saveFailedRef.current = false;
+  const save = (patch: { content?: CvContent; templateKey?: CvTemplateKey }) => {
+    if (!id) return;
 
-      clearDebounce();
-      debounceTimerRef.current = setTimeout(() => {
-        debounceTimerRef.current = null;
-        void processQueue();
-      }, CV_SAVE_DEBOUNCE_MS);
-    },
-    [clearDebounce, processQueue],
-  );
+    setSaving(true);
+    setSaveError(null);
 
-  const flushPendingSave = useCallback(async () => {
-    clearDebounce();
-    if (pendingRef.current) {
-      void processQueue();
-    }
-    await queueTailRef.current.catch(() => undefined);
-
-    if (saveFailedRef.current || pendingRef.current) {
-      setSaveError((prev) => prev?.trim() || t('cv.saveError'));
-      return false;
-    }
-
-    return true;
-  }, [clearDebounce, processQueue, t]);
-
-  const updateContent = useCallback(
-    (nextContent: CvContent) => {
-      if (!canMutateCv(cv, currentUser.id, currentUser.role)) return;
-
-      setContent(nextContent);
-      contentRef.current = nextContent;
-      enqueueSave({ content: nextContent });
-    },
-    [cv, currentUser.id, currentUser.role, enqueueSave],
-  );
-
-  const updateTemplate = useCallback(
-    (nextTemplate: CvTemplateKey) => {
-      if (!canMutateCv(cv, currentUser.id, currentUser.role)) return;
-
-      setTemplateKey(nextTemplate);
-      templateKeyRef.current = nextTemplate;
-      enqueueSave({ templateKey: nextTemplate });
-    },
-    [cv, currentUser.id, currentUser.role, enqueueSave],
-  );
-
-  const refresh = useCallback(
-    async (sections: CvSection[]) => {
-      if (!id || !canMutateCv(cv, currentUser.id, currentUser.role)) return false;
-      if (sections.length === 0) return false;
-
-      const generation = generationRef.current;
-      const flushed = await flushPendingSave();
-      if (!flushed) return false;
-      if (generation !== generationRef.current || workspaceIdRef.current !== id) return false;
-
-      try {
-        setActionError(null);
-        const response = await refreshCv(id, sections);
-        if (generation !== generationRef.current || workspaceIdRef.current !== id) return false;
-        adoptCv(response.cv);
-        pendingRef.current = null;
-        saveFailedRef.current = false;
-        pendingActionRef.current = null;
+    updateCv(id, patch)
+      .then((response) => {
+        setCv((current) => (current ? { ...current, ...response.cv } : response.cv));
         setIsSaved(true);
-        enqueueSnackbar(t('common.saved'), { variant: 'success' });
-        return true;
-      } catch {
-        if (generation !== generationRef.current || workspaceIdRef.current !== id) return false;
-        pendingActionRef.current = { type: 'refresh', sections };
-        setActionError(t('common.error'));
-        enqueueSnackbar(t('common.error'), { variant: 'error' });
-        return false;
-      }
-    },
-    [
-      adoptCv,
-      cv,
-      currentUser.id,
-      currentUser.role,
-      enqueueSnackbar,
-      flushPendingSave,
-      id,
-      t,
-    ],
-  );
+      })
+      .catch((err) => {
+        setIsSaved(false);
+        setSaveError(apiErrorMessage(err, t('cv.saveError')));
+      })
+      .finally(() => {
+        setSaving(false);
+      });
+  };
 
-  const publish = useCallback(async () => {
+  const updateContent = (nextContent: CvContent) => {
+    if (!canMutateCv(cv, currentUser.id, currentUser.role)) return;
+
+    setContent(nextContent);
+    setIsSaved(false);
+
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      save({ content: nextContent });
+    }, CV_SAVE_DEBOUNCE_MS);
+  };
+
+  const updateTemplate = (nextTemplate: CvTemplateKey) => {
+    if (!canMutateCv(cv, currentUser.id, currentUser.role)) return;
+
+    setTemplateKey(nextTemplate);
+    save({ templateKey: nextTemplate });
+  };
+
+  const refresh = async (sections: CvSection[]) => {
     if (!id || !canMutateCv(cv, currentUser.id, currentUser.role)) return false;
-
-    const generation = generationRef.current;
-    const flushed = await flushPendingSave();
-    if (!flushed) return false;
-    if (generation !== generationRef.current || workspaceIdRef.current !== id) return false;
+    if (sections.length === 0) return false;
 
     try {
       setActionError(null);
-      await publishCv(id);
-      if (generation !== generationRef.current || workspaceIdRef.current !== id) return false;
-      setCv((prev) => (prev ? { ...prev, status: 'published' } : prev));
-      pendingActionRef.current = null;
-      enqueueSnackbar(t('cv.publishSuccess'), { variant: 'success' });
+      const response = await refreshCv(id, sections);
+      setCv(response.cv);
+      setContent(response.cv.content ?? emptyCvContent());
+      setTemplateKey(response.cv.templateKey ?? DEFAULT_TEMPLATE_KEY);
+      setIsSaved(true);
+      enqueueSnackbar(t('common.saved'), { variant: 'success' });
       return true;
     } catch {
-      if (generation !== generationRef.current || workspaceIdRef.current !== id) return false;
-      pendingActionRef.current = { type: 'publish' };
       setActionError(t('common.error'));
       enqueueSnackbar(t('common.error'), { variant: 'error' });
       return false;
     }
-  }, [
-    cv,
-    currentUser.id,
-    currentUser.role,
-    enqueueSnackbar,
-    flushPendingSave,
-    id,
-    t,
-  ]);
+  };
 
-  const retrySave = useCallback(async () => {
-    await flushPendingSave();
-  }, [flushPendingSave]);
+  const publish = async () => {
+    if (!id || !canMutateCv(cv, currentUser.id, currentUser.role)) return false;
 
-  const retryAction = useCallback(async () => {
-    const pendingAction = pendingActionRef.current;
-    if (!pendingAction) return;
-
-    if (pendingAction.type === 'refresh') {
-      await refresh(pendingAction.sections);
-      return;
+    try {
+      setActionError(null);
+      await publishCv(id);
+      setCv((current) => (current ? { ...current, status: 'published' } : current));
+      enqueueSnackbar(t('cv.publishSuccess'), { variant: 'success' });
+      return true;
+    } catch {
+      setActionError(t('common.error'));
+      enqueueSnackbar(t('common.error'), { variant: 'error' });
+      return false;
     }
+  };
 
-    await publish();
-  }, [publish, refresh]);
+  const retrySave = () => {
+    if (content) save({ content });
+  };
 
   return {
     cv,
@@ -426,6 +183,5 @@ export const useCvWorkspace = (id: string | undefined) => {
     publish,
     reload: load,
     retrySave,
-    retryAction,
   };
 };

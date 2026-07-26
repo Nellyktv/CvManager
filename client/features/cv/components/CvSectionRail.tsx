@@ -27,10 +27,15 @@ const isContactComplete = (content: CvContent) =>
 const hasNonblankInstitution = (content: CvContent) =>
   content.education.some((entry) => entry.institution.trim().length > 0);
 
-const sectionMeta = (section: CvEditorSection, content: CvContent) => {
+type SectionMeta = {
+  count: number | null;
+  complete: boolean;
+};
+
+const sectionMeta = (section: CvEditorSection, content: CvContent): SectionMeta => {
   switch (section) {
     case 'contact':
-      return { count: null as number | null, complete: isContactComplete(content) };
+      return { count: null, complete: isContactComplete(content) };
     case 'skills':
       return { count: content.skills.length, complete: content.skills.length > 0 };
     case 'education':

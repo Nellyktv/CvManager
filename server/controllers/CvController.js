@@ -7,14 +7,9 @@ import {
     buildSnapshotFromProfile,
     isSnapshotComplete,
     mergeSnapshotSections,
-} from '../service/cv-snapshot-service.js';
+} from './cvSnapshot.js';
 
 const ALLOWED_REFRESH_SECTIONS = new Set(['contact', 'skills', 'education', 'projects']);
-
-const canReadCv = (cv, user) =>
-    user.role === 'ADMIN' ||
-    cv.userId === user.id ||
-    (user.role === 'RECRUITER' && cv.status === 'published');
 
 const parseOrBadRequest = (validate, body) => {
     try {
@@ -35,7 +30,13 @@ const assertCanMutateCv = (cv, user, message = 'You can modify only your own CV'
     }
 };
 
-const loadPositionForCreate = async (positionId) => {
+const createCv = async (req, res) => {
+    const { positionId } = req.body;
+
+    if (!positionId) {
+        throw ApiError.badRequest('positionId is required');
+    }
+
     const position = await Position.findByPk(positionId, {
         include: [
             {
@@ -50,30 +51,13 @@ const loadPositionForCreate = async (positionId) => {
         throw ApiError.notFound('Position not found');
     }
 
-    return position;
-};
-
-const assertCandidatePositionAccess = (position, user) => {
-    if (user.role !== 'CANDIDATE') return;
-
-    const allowed = position.allowedCandidates ?? [];
-    if (allowed.length === 0) return;
-
-    const hasAccess = allowed.some((candidate) => candidate.id === user.id);
-    if (!hasAccess) {
-        throw ApiError.forbidden('You do not have access to this position');
+    if (req.user.role === 'CANDIDATE') {
+        const allowed = position.allowedCandidates ?? [];
+        const hasAccess = allowed.length === 0 || allowed.some((candidate) => candidate.id === req.user.id);
+        if (!hasAccess) {
+            throw ApiError.forbidden('You do not have access to this position');
+        }
     }
-};
-
-const createCv = async (req, res) => {
-    const { positionId } = req.body;
-
-    if (!positionId) {
-        throw ApiError.badRequest('positionId is required');
-    }
-
-    const position = await loadPositionForCreate(positionId);
-    assertCandidatePositionAccess(position, req.user);
 
     const content = parseOrBadRequest(
         validateCvContent,
@@ -116,7 +100,12 @@ const getCv = async (req, res) => {
         throw ApiError.notFound('CV not found');
     }
 
-    if (!canReadCv(cv, req.user)) {
+    const canRead =
+        req.user.role === 'ADMIN' ||
+        cv.userId === req.user.id ||
+        (req.user.role === 'RECRUITER' && cv.status === 'published');
+
+    if (!canRead) {
         throw ApiError.forbidden('Access denied');
     }
 

@@ -30,15 +30,17 @@ export type CvProject = {
   descriptionMarkdown?: string;
 };
 
+export type CvContact = {
+  name: string;
+  headline?: string;
+  email?: string;
+  phone?: string;
+  location?: string;
+  links: CvLink[];
+};
+
 export type CvContent = {
-  contact: {
-    name: string;
-    headline?: string;
-    email?: string;
-    phone?: string;
-    location?: string;
-    links: CvLink[];
-  };
+  contact: CvContact;
   skills: CvSkill[];
   education: CvEducation[];
   projects: CvProject[];

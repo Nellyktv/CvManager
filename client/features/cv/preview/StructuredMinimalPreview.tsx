@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import type { CvContent } from '../../../shared/types/cv';
 import { formatCvDateRange } from '../../../shared/utils/formatDate';
+import { isSafeUrl } from '../../../shared/utils/isSafeUrl';
 import type { CvEditorSection } from '../CvPage.constants';
 import { cvDocumentLocale } from './cvDocumentLocale';
 import CvDocumentFrame from './CvDocumentFrame';
@@ -138,7 +139,7 @@ const StructuredMinimalPreview = ({
                         ·
                       </Box>
                     ) : null}
-                    {link ? (
+                    {link && isSafeUrl(link.url) ? (
                       <Box
                         component="a"
                         href={link.url}
@@ -201,9 +202,13 @@ const StructuredMinimalPreview = ({
                     <Box component="ul" sx={{ m: '0 0 0.45rem', pl: 1.5, fontSize: '0.8rem' }}>
                       {project.links.map((link) => (
                         <Box component="li" key={link.url}>
-                          <a href={link.url} target="_blank" rel="noopener noreferrer">
-                            {link.label}
-                          </a>
+                          {isSafeUrl(link.url) ? (
+                            <a href={link.url} target="_blank" rel="noopener noreferrer">
+                              {link.label}
+                            </a>
+                          ) : (
+                            link.label
+                          )}
                         </Box>
                       ))}
                     </Box>
