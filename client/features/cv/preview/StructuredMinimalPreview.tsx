@@ -181,7 +181,7 @@ const StructuredMinimalPreview = ({
               const dates = formatCvDateRange(project.startDate, project.endDate, locale);
               return (
                 <Box
-                  key={`${project.title}-${project.startDate ?? ''}`}
+                  key={`${project.title}-${project.startDate || ''}`}
                   component="article"
                   sx={{
                     mb: 2,
@@ -231,7 +231,7 @@ const StructuredMinimalPreview = ({
                 {t('cv.documentSkills')}
               </Typography>
               {skillBuckets.map((bucket) => (
-                <Box key={bucket.group ?? '__ungrouped'} sx={{ mb: bucket.group ? 1 : 0 }}>
+                <Box key={bucket.group || '__ungrouped'} sx={{ mb: bucket.group ? 1 : 0 }}>
                   {bucket.group ? (
                     <Typography
                       sx={{ fontSize: '0.8rem', fontWeight: 600, mb: 0.3, color: '#374151' }}
@@ -262,7 +262,7 @@ const StructuredMinimalPreview = ({
               {education.map((entry) => {
                 const dates = formatCvDateRange(entry.startDate, entry.endDate, locale);
                 return (
-                  <Box key={`${entry.institution}-${entry.startDate ?? ''}`} sx={{ mb: 1.1 }}>
+                  <Box key={`${entry.institution}-${entry.startDate || ''}`} sx={{ mb: 1.1 }}>
                     <Typography sx={{ fontSize: '0.9rem', fontWeight: 600 }}>
                       {entry.institution}
                     </Typography>

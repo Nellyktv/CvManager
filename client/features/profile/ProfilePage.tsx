@@ -175,7 +175,7 @@ const ProfilePage = () => {
       role: project.role || '',
       startDate: project.startDate || '',
       endDate: project.endDate || '',
-      links: (project.links ?? []).map((link) => ({
+      links: (project.links || []).map((link) => ({
         label: link.label || '',
         url: link.url || '',
       })),

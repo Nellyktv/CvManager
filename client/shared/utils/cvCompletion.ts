@@ -1,7 +1,7 @@
 import type { CvContent } from '../types/cv';
 
 const hasNonblankInstitution = (content: CvContent) =>
-  content.education.some((entry) => Boolean(entry.institution.trim()));
+  content.education.some((entry) => entry.institution.trim());
 
 export const isCvComplete = (content: CvContent) =>
   Boolean(

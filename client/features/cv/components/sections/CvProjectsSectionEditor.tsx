@@ -110,7 +110,7 @@ const CvProjectsSectionEditor = ({
           />
           <TextField
             label={t('profile.projectRole')}
-            value={project.role ?? ''}
+            value={project.role || ''}
             onChange={(e) => updateProject(index, { role: e.target.value })}
             disabled={disabled}
           />
@@ -118,7 +118,7 @@ const CvProjectsSectionEditor = ({
             <TextField
               label={t('profile.projectStartDate')}
               type="date"
-              value={project.startDate ?? ''}
+              value={project.startDate || ''}
               onChange={(e) => updateProject(index, { startDate: e.target.value })}
               disabled={disabled}
               slotProps={{ inputLabel: { shrink: true } }}
@@ -127,7 +127,7 @@ const CvProjectsSectionEditor = ({
             <TextField
               label={t('profile.projectEndDate')}
               type="date"
-              value={project.endDate ?? ''}
+              value={project.endDate || ''}
               onChange={(e) => updateProject(index, { endDate: e.target.value })}
               disabled={disabled}
               slotProps={{ inputLabel: { shrink: true } }}

@@ -50,7 +50,7 @@ const MarkdownProjectEditor = ({ value, onChange, label }: Props) => {
       <div data-color-mode={theme}>
         <MDEditor
           value={value}
-          onChange={(next) => onChange(next ?? '')}
+          onChange={(next) => onChange(next || '')}
           commands={toolbarCommands}
           extraCommands={[]}
           data-color-mode={theme}

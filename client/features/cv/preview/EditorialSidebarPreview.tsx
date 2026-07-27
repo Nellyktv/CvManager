@@ -133,7 +133,7 @@ const EditorialSidebarPreview = ({
               {t('cv.documentSkills')}
             </Typography>
             {skillBuckets.map((bucket) => (
-              <Box key={bucket.group ?? '__ungrouped'} sx={{ mb: bucket.group ? 1 : 0 }}>
+              <Box key={bucket.group || '__ungrouped'} sx={{ mb: bucket.group ? 1 : 0 }}>
                 {bucket.group ? (
                   <Typography sx={{ fontSize: '0.78rem', fontWeight: 600, mb: 0.35, opacity: 0.95 }}>
                     {bucket.group}
@@ -162,7 +162,7 @@ const EditorialSidebarPreview = ({
             {education.map((entry) => {
               const dates = formatCvDateRange(entry.startDate, entry.endDate, locale);
               return (
-                <Box key={`${entry.institution}-${entry.startDate ?? ''}`} sx={{ mb: 1.25 }}>
+                <Box key={`${entry.institution}-${entry.startDate || ''}`} sx={{ mb: 1.25 }}>
                   <Typography sx={{ fontSize: '0.88rem', fontWeight: 600 }}>
                     {entry.institution}
                   </Typography>
@@ -230,7 +230,7 @@ const EditorialSidebarPreview = ({
               const dates = formatCvDateRange(project.startDate, project.endDate, locale);
               return (
                 <Box
-                  key={`${project.title}-${project.startDate ?? ''}`}
+                  key={`${project.title}-${project.startDate || ''}`}
                   component="article"
                   sx={{ mb: 2.25 }}
                 >

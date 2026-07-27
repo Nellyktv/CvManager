@@ -44,14 +44,14 @@ const CvSkillsSectionEditor = ({ skills, onChange, disabled = false }: Props) =>
           />
           <TextField
             label={t('cv.skillValue')}
-            value={skill.value ?? ''}
+            value={skill.value || ''}
             onChange={(e) => updateSkill(index, { value: e.target.value })}
             disabled={disabled}
             fullWidth
           />
           <TextField
             label={t('cv.skillGroup')}
-            value={skill.group ?? ''}
+            value={skill.group || ''}
             onChange={(e) => updateSkill(index, { group: e.target.value })}
             disabled={disabled}
             fullWidth

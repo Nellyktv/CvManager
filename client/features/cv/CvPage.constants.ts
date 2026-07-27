@@ -37,5 +37,5 @@ export const templateLabelKey = (
   templateKey: CvTemplateKey | string | null | undefined,
 ): CvTemplateLabelKey => {
   const match = CV_TEMPLATE_OPTIONS.find((option) => option.key === templateKey);
-  return match?.labelKey ?? 'cv.templateEditorialSidebar';
+  return match?.labelKey || 'cv.templateEditorialSidebar';
 };

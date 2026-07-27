@@ -42,13 +42,13 @@ export const useCandidateProfile = (enabled: boolean) => {
         setProfile({
           ...emptyCandidateProfile,
           ...data.profile,
-          headline: data.profile.headline ?? '',
-          publicEmail: data.profile.publicEmail ?? '',
-          phone: data.profile.phone ?? '',
-          location: data.profile.location ?? '',
-          linkedinUrl: data.profile.linkedinUrl ?? '',
-          githubUrl: data.profile.githubUrl ?? '',
-          portfolioUrl: data.profile.portfolioUrl ?? '',
+          headline: data.profile.headline || '',
+          publicEmail: data.profile.publicEmail || '',
+          phone: data.profile.phone || '',
+          location: data.profile.location || '',
+          linkedinUrl: data.profile.linkedinUrl || '',
+          githubUrl: data.profile.githubUrl || '',
+          portfolioUrl: data.profile.portfolioUrl || '',
         });
         setError(null);
       })
@@ -70,13 +70,13 @@ export const useCandidateProfile = (enabled: boolean) => {
       setProfile({
         ...emptyCandidateProfile,
         ...response.profile,
-        headline: response.profile.headline ?? '',
-        publicEmail: response.profile.publicEmail ?? '',
-        phone: response.profile.phone ?? '',
-        location: response.profile.location ?? '',
-        linkedinUrl: response.profile.linkedinUrl ?? '',
-        githubUrl: response.profile.githubUrl ?? '',
-        portfolioUrl: response.profile.portfolioUrl ?? '',
+        headline: response.profile.headline || '',
+        publicEmail: response.profile.publicEmail || '',
+        phone: response.profile.phone || '',
+        location: response.profile.location || '',
+        linkedinUrl: response.profile.linkedinUrl || '',
+        githubUrl: response.profile.githubUrl || '',
+        portfolioUrl: response.profile.portfolioUrl || '',
       });
       enqueueSnackbar(t('common.saved'), { variant: 'success' });
     } catch (err) {

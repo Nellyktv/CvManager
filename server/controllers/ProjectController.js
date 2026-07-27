@@ -12,7 +12,7 @@ const parseOrBadRequest = (validate, body) => {
     return validate(body);
   } catch (err) {
     if (err instanceof ZodError) {
-      throw ApiError.badRequest(err.issues[0]?.message ?? 'Invalid request');
+      throw ApiError.badRequest(err.issues[0]?.message || 'Invalid request');
     }
     throw err;
   }

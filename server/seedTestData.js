@@ -43,24 +43,24 @@ const run = async () => {
 
     const profile = await CandidateProfile.create({
         userId: fixtureCandidate.id,
-        headline: 'Frontend Engineer',
+        headline: 'Frontend Developer',
         publicEmail: fixtureCandidate.email,
-        phone: '+370 600 00000',
-        location: 'Vilnius, Lithuania',
-        linkedinUrl: 'https://linkedin.com/in/example',
-        githubUrl: 'https://github.com/example',
-        portfolioUrl: 'https://example.dev',
+        phone: '+7 999 123-45-67',
+        location: 'Москва, Россия',
+        linkedinUrl: 'https://linkedin.com/in/ivan-ivanov',
+        githubUrl: 'https://github.com/ivan-ivanov',
+        portfolioUrl: 'https://ivanivanov.dev',
     });
 
     const education = await Education.create({
         userId: fixtureCandidate.id,
-        institution: 'Vilnius University',
-        degree: 'BSc',
-        field: 'Computer Science',
-        location: 'Vilnius',
+        institution: 'МГУ им. М.В. Ломоносова',
+        degree: 'Бакалавр',
+        field: 'Компьютерные науки',
+        location: 'Москва',
         startDate: '2018-09-01',
         endDate: '2022-06-30',
-        description: 'Software engineering track',
+        description: 'Разработка ПО',
         displayOrder: 0,
     });
 
@@ -70,7 +70,7 @@ const run = async () => {
         role: 'Full-stack developer',
         startDate: '2024-01-01',
         endDate: '2025-12-31',
-        links: [{ label: 'Repo', url: 'https://github.com/example/cv-manager' }],
+        links: [{ label: 'Repo', url: 'https://github.com/ivan-ivanov/cv-manager' }],
         displayOrder: 0,
         descriptionMarkdown: 'Built a **CV workspace** with preview and PDF export.',
     });

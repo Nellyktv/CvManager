@@ -154,7 +154,7 @@ const EditorialSidebarPdf = ({ content, labels, locale }: Props) => {
             <View style={styles.section}>
               <Text style={styles.sectionHeading}>{labels.skills}</Text>
               {skillBuckets.map((bucket) => (
-                <View key={bucket.group ?? '__ungrouped'}>
+                <View key={bucket.group || '__ungrouped'}>
                   {bucket.group ? (
                     <Text style={styles.groupLabel}>{bucket.group}</Text>
                   ) : null}
@@ -176,7 +176,7 @@ const EditorialSidebarPdf = ({ content, labels, locale }: Props) => {
                 const dates = formatCvDateRange(entry.startDate, entry.endDate, locale);
                 return (
                   <View
-                    key={`${entry.institution}-${entry.startDate ?? ''}`}
+                    key={`${entry.institution}-${entry.startDate || ''}`}
                     style={{ marginBottom: 8 }}
                     wrap={false}
                   >
@@ -217,7 +217,7 @@ const EditorialSidebarPdf = ({ content, labels, locale }: Props) => {
                 const dates = formatCvDateRange(project.startDate, project.endDate, locale);
                 return (
                   <View
-                    key={`${project.title}-${project.startDate ?? ''}`}
+                    key={`${project.title}-${project.startDate || ''}`}
                     style={styles.project}
                   >
                     <View wrap={false}>

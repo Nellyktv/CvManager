@@ -177,7 +177,7 @@ const StructuredMinimalPdf = ({ content, labels, locale }: Props) => {
                 const dates = formatCvDateRange(project.startDate, project.endDate, locale);
                 return (
                   <View
-                    key={`${project.title}-${project.startDate ?? ''}`}
+                    key={`${project.title}-${project.startDate || ''}`}
                     style={styles.project}
                   >
                     <View wrap={false}>
@@ -211,7 +211,7 @@ const StructuredMinimalPdf = ({ content, labels, locale }: Props) => {
               <View style={styles.section}>
                 <Text style={styles.railHeading}>{labels.skills}</Text>
                 {skillBuckets.map((bucket) => (
-                  <View key={bucket.group ?? '__ungrouped'} style={{ marginBottom: 6 }}>
+                  <View key={bucket.group || '__ungrouped'} style={{ marginBottom: 6 }}>
                     {bucket.group ? (
                       <Text style={styles.groupLabel}>{bucket.group}</Text>
                     ) : null}
@@ -233,7 +233,7 @@ const StructuredMinimalPdf = ({ content, labels, locale }: Props) => {
                   const dates = formatCvDateRange(entry.startDate, entry.endDate, locale);
                   return (
                     <View
-                      key={`${entry.institution}-${entry.startDate ?? ''}`}
+                      key={`${entry.institution}-${entry.startDate || ''}`}
                       style={{ marginBottom: 8 }}
                       wrap={false}
                     >

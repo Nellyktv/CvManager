@@ -16,7 +16,7 @@ const parseOrBadRequest = (validate, body) => {
         return validate(body);
     } catch (err) {
         if (err instanceof ZodError) {
-            throw ApiError.badRequest(err.issues[0]?.message ?? 'Invalid request');
+            throw ApiError.badRequest(err.issues[0]?.message || 'Invalid request');
         }
         throw err;
     }
@@ -52,7 +52,7 @@ const createCv = async (req, res) => {
     }
 
     if (req.user.role === 'CANDIDATE') {
-        const allowed = position.allowedCandidates ?? [];
+        const allowed = position.allowedCandidates || [];
         const hasAccess = allowed.length === 0 || allowed.some((candidate) => candidate.id === req.user.id);
         if (!hasAccess) {
             throw ApiError.forbidden('You do not have access to this position');
@@ -210,7 +210,7 @@ const refreshCvFromProfile = async (req, res) => {
     assertCanMutateCv(cv, req.user);
 
     const defaults = await buildSnapshotFromProfile(cv.userId);
-    const existing = cv.content ?? {
+    const existing = cv.content || {
         contact: { name: '', links: [] },
         skills: [],
         education: [],

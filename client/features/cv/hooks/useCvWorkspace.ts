@@ -64,8 +64,8 @@ export const useCvWorkspace = (id: string | undefined) => {
     getCv(id)
       .then((data) => {
         setCv(data.cv);
-        setContent(data.cv.content ?? emptyCvContent());
-        setTemplateKey(data.cv.templateKey ?? DEFAULT_TEMPLATE_KEY);
+        setContent(data.cv.content || emptyCvContent());
+        setTemplateKey(data.cv.templateKey || DEFAULT_TEMPLATE_KEY);
         setError(null);
         setIsSaved(false);
       })
@@ -134,8 +134,8 @@ export const useCvWorkspace = (id: string | undefined) => {
       setActionError(null);
       const response = await refreshCv(id, sections);
       setCv(response.cv);
-      setContent(response.cv.content ?? emptyCvContent());
-      setTemplateKey(response.cv.templateKey ?? DEFAULT_TEMPLATE_KEY);
+      setContent(response.cv.content || emptyCvContent());
+      setTemplateKey(response.cv.templateKey || DEFAULT_TEMPLATE_KEY);
       setIsSaved(true);
       enqueueSnackbar(t('common.saved'), { variant: 'success' });
       return true;

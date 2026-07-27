@@ -117,5 +117,5 @@ export const isSnapshotComplete = (content) =>
   Boolean(
     content.contact.name.trim() &&
       content.contact.email?.trim() &&
-      content.education.some((entry) => Boolean(String(entry.institution ?? '').trim())),
+      content.education.some((entry) => entry.institution.trim()),
   );

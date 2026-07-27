@@ -34,13 +34,13 @@ type FieldErrors = {
 };
 
 const toFormValues = (profile: CandidateProfile): FormValues => ({
-  headline: profile.headline ?? '',
-  publicEmail: profile.publicEmail ?? '',
-  phone: profile.phone ?? '',
-  location: profile.location ?? '',
-  linkedinUrl: profile.linkedinUrl ?? '',
-  githubUrl: profile.githubUrl ?? '',
-  portfolioUrl: profile.portfolioUrl ?? '',
+  headline: profile.headline || '',
+  publicEmail: profile.publicEmail || '',
+  phone: profile.phone || '',
+  location: profile.location || '',
+  linkedinUrl: profile.linkedinUrl || '',
+  githubUrl: profile.githubUrl || '',
+  portfolioUrl: profile.portfolioUrl || '',
 });
 
 const CandidateContactForm = ({
