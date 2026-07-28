@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSnackbar } from 'notistack';
 import { useTranslation } from 'react-i18next';
 
@@ -13,6 +13,7 @@ import {
 import type { CvContent, CvTemplateKey } from '../../../shared/types/cv';
 import useUserStore from '../../../store/UserStore';
 import { DEFAULT_TEMPLATE_KEY, emptyCvContent } from '../CvPage.constants';
+import { useDebounce } from './useDebaounce';
 
 export const CV_SAVE_DEBOUNCE_MS = 500;
 
@@ -41,8 +42,8 @@ export const useCvWorkspace = (id: string | undefined) => {
   const [saving, setSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [observedId, setObservedId] = useState(id);
-
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [pendingContent, setPendingContent] = useState<CvContent | null>(null);
+  const debouncedContent = useDebounce(pendingContent, CV_SAVE_DEBOUNCE_MS);
 
   // Reset the workspace to a loading state as soon as the CV id changes.
   // Done here (during render), not in an effect, because the effect below
@@ -56,6 +57,7 @@ export const useCvWorkspace = (id: string | undefined) => {
     setError(id ? null : t('cv.loadError'));
     setSaveError(null);
     setActionError(null);
+    setPendingContent(null);
   }
 
   const load = () => {
@@ -81,9 +83,6 @@ export const useCvWorkspace = (id: string | undefined) => {
 
   useEffect(() => {
     load();
-    return () => {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -107,16 +106,20 @@ export const useCvWorkspace = (id: string | undefined) => {
       });
   };
 
+  useEffect(() => {
+    if (!debouncedContent) return;
+    // Reacting to the debounce timer settling, not deriving redundant state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    save({ content: debouncedContent });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedContent]);
+
   const updateContent = (nextContent: CvContent) => {
     if (!canMutateCv(cv, currentUser.id, currentUser.role)) return;
 
     setContent(nextContent);
     setIsSaved(false);
-
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = setTimeout(() => {
-      save({ content: nextContent });
-    }, CV_SAVE_DEBOUNCE_MS);
+    setPendingContent(nextContent);
   };
 
   const updateTemplate = (nextTemplate: CvTemplateKey) => {

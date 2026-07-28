@@ -201,7 +201,18 @@ const refreshCvFromProfile = async (req, res) => {
         }
     }
 
-    const cv = await Cv.findByPk(id);
+    const cv = await Cv.findByPk(id, {
+        include: [
+            {
+                model: Position,
+                attributes: ['id', 'title'],
+            },
+            {
+                model: User,
+                attributes: ['id', 'firstName', 'lastName'],
+            },
+        ],
+    });
 
     if (!cv) {
         throw ApiError.notFound('CV not found');

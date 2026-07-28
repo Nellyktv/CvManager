@@ -121,12 +121,11 @@ const userService = {
             throw ApiError.forbidden('Cannot block an administrator');
         }
 
-        const updatedData = {
-            firstName,
-            lastName,
-            role,
-            isBlocked,
-        };
+        const updatedData = {};
+        if (firstName !== undefined) updatedData.firstName = firstName;
+        if (lastName !== undefined) updatedData.lastName = lastName;
+        if (role !== undefined) updatedData.role = role;
+        if (isBlocked !== undefined) updatedData.isBlocked = isBlocked;
 
         if (password) {
             updatedData.password = await bcrypt.hash(password, 10);
