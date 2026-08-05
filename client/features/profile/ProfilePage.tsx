@@ -13,7 +13,7 @@ import {
 import { DataGrid, type GridColDef, type GridRowId } from '@mui/x-data-grid';
 import { useParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import useUserStore from '../../store/UserStore';
 import { useProfile } from './useProfile';
@@ -30,6 +30,7 @@ import ProjectFormDialog from './ProjectFormDialog';
 import CandidateContactForm from './components/CandidateContactForm';
 import EducationSection from './components/EducationSection';
 import CrudToolbar from '../../shared/components/toolbars/CrudToolbar';
+import { SalesforceDialog } from './SalesforceDialog';
 
 const toProjectPayload = (form: ProjectFormValues) => ({
   title: form.title.trim(),
@@ -110,6 +111,14 @@ const ProfilePage = () => {
 
   const [selectedProjectIds, setSelectedProjectIds] = useState<GridRowId[]>([]);
   const [selectedCvIds, setSelectedCvIds] = useState<GridRowId[]>([]);
+  const [sfDialogOpen, setSfDialogOpen] = useState(false);
+  const [sfSynced, setSfSynced] = useState(false);
+
+  useEffect(() => {
+    if (profile.salesforceContactId) {
+      setSfSynced(true);
+    }
+  }, [profile.salesforceContactId]);
 
   const cvColumns: GridColDef[] = [
     {
@@ -243,14 +252,23 @@ const ProfilePage = () => {
           </Stack>
 
           {canEdit && (
-            <Button
-              variant="contained"
-              onClick={handleSave}
-              disabled={saving}
-              sx={{ alignSelf: 'flex-start' }}
-            >
-              {saving ? t('profile.saving') : t('profile.saveProfile')}
-            </Button>
+            <Stack direction="row" gap={2}>
+              <Button
+                variant="contained"
+                onClick={handleSave}
+                disabled={saving}
+              >
+                {saving ? t('profile.saving') : t('profile.saveProfile')}
+              </Button>
+              {isOwner && (
+                <Button
+                  variant="outlined"
+                  onClick={() => setSfDialogOpen(true)}
+                >
+                  {sfSynced ? t('profile.resyncSalesforce') : t('profile.addToSalesforce')}
+                </Button>
+              )}
+            </Stack>
           )}
         </Stack>
       </Paper>
@@ -353,6 +371,13 @@ const ProfilePage = () => {
         onClose={closeProjectDialog}
         onSave={handleSaveProject}
         saving={savingProject}
+      />
+
+      <SalesforceDialog
+        open={sfDialogOpen}
+        onClose={() => setSfDialogOpen(false)}
+        onSuccess={() => setSfSynced(true)}
+        defaultPhone={candidateProfile.phone}
       />
 
       <Paper sx={{ p: 3, m: 1, borderRadius: 3 }}>

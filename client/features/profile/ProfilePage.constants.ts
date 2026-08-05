@@ -7,6 +7,7 @@ export type Profile = {
   lastName: string;
   email: string;
   role: UserRole | '';
+  salesforceContactId: string | null;
 };
 
 export type CvPosition = {
@@ -91,4 +92,5 @@ export const emptyProfile: Profile = {
   lastName: '',
   email: '',
   role: '',
+  salesforceContactId: null,
 };

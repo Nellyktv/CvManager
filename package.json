@@ -25,6 +25,7 @@
     "file-saver": "^2.0.5",
     "i18next": "^26.3.6",
     "i18next-browser-languagedetector": "^8.2.1",
+    "jsforce": "^3.10.19",
     "jwt-decode": "^4.0.0",
     "notistack": "^3.0.2",
     "react": "^19.2.7",

@@ -60,6 +60,7 @@ export const useProfile = (profileId: number, isOwner: boolean) => {
           lastName: user.lastName || '',
           email: user.email || '',
           role: user.role || '',
+          salesforceContactId: user.salesforceContactId || null,
         });
       })
       .catch((error) => {

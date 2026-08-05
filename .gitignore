@@ -24,15 +24,4 @@ dist-ssr
 *.sln
 *.sw?
 
-# Personal notes (not part of the project)
-defense-notes.md
-progress.md
-tz.md
-tz_ru.md
 
-# Claude Code settings
-.claude/
-CLAUDE.md
-
-# Local agent artifacts
-.superpowers/

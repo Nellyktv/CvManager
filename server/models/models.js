@@ -16,7 +16,9 @@ const User = sequelize.define('user', {
     role: {
         type: DataTypes.ENUM("CANDIDATE", "RECRUITER", "ADMIN"),
         defaultValue: "CANDIDATE"
-    }
+    },
+    salesforceAccountId: { type: DataTypes.STRING, allowNull: true },
+    salesforceContactId: { type: DataTypes.STRING, allowNull: true }
 });
 
 const Position = sequelize.define('position', {

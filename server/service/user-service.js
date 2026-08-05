@@ -171,7 +171,8 @@ const userService = {
                 'lastName',
                 'email',
                 'role',
-                'isBlocked'
+                'isBlocked',
+                'salesforceContactId'
             ],
         });
         if (!user) {

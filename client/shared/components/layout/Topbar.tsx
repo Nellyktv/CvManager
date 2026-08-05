@@ -13,13 +13,16 @@ import {
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import MenuIcon from '@mui/icons-material/Menu';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 
 import { useThemeStore } from '../../../store/ThemeStore';
 import type { UserRole } from '../../../store/UserStore';
 import { LOGIN_ROUTE } from '../../utils/constsLinks';
+import { SupportTicketDialog } from './SupportTicketDialog';
 
 type TopbarProps = {
   onMenuClick: () => void;
@@ -41,6 +44,7 @@ const Topbar = ({
   onLogout,
 }: TopbarProps) => {
   const { t, i18n } = useTranslation();
+  const [ticketDialogOpen, setTicketDialogOpen] = useState(false);
   const navigate = useNavigate();
   const mode = useThemeStore((state) => state.theme);
   const toggleMode = useThemeStore((state) => state.toggleTheme);
@@ -86,6 +90,13 @@ const Topbar = ({
 
           {isAuth && (
             <>
+              <IconButton
+                onClick={() => setTicketDialogOpen(true)}
+                title={t('supportTicket.helpIcon')}
+              >
+                <HelpOutlineIcon />
+              </IconButton>
+
               <Stack direction="row" alignItems="center" gap={1}>
                 <Avatar>{initials}</Avatar>
                 <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
@@ -105,6 +116,8 @@ const Topbar = ({
           )}
         </Stack>
       </Toolbar>
+
+      <SupportTicketDialog open={ticketDialogOpen} onClose={() => setTicketDialogOpen(false)} />
     </AppBar>
   );
 };
