@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: cv_manager
+      POSTGRES_USER: cv_manager
+      POSTGRES_PASSWORD: cv_manager
+    ports:
+      - "5437:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cv_manager -d cv_manager"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      args:
+        VITE_API_URL: /api
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-}
+    ports:
+      - "${APP_PORT:-4300}:4200"
+    env_file:
+      - path: server/.env
+        required: false
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: cv_manager
+      DB_USER: cv_manager
+      DB_PASSWORD: cv_manager
+      PORT: 4200
+      SECRET_KEY_ROLE: ${SECRET_KEY_ROLE:-local-dev-secret-change-me}
+      API_URL: http://localhost:${APP_PORT:-4300}
+      CLIENT_URL: http://localhost:${APP_PORT:-4300}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:
