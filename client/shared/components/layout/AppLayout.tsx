@@ -9,6 +9,11 @@ import { DRAWER_WIDTH } from './AppLayout.constants';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 
+const fullHeight = {
+  minHeight: '100vh',
+  '@supports (min-height: 100dvh)': { minHeight: '100dvh' },
+};
+
 const AppLayout = () => {
   const navigate = useNavigate();
   const logout = useUserStore((state) => state.logout);
@@ -44,11 +49,11 @@ const AppLayout = () => {
   };
 
   const drawerPaperStyle = {
-    '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box', p: 2 },
+    '& .MuiDrawer-paper': { width: DRAWER_WIDTH, maxWidth: '85vw', boxSizing: 'border-box', p: 1.5 },
   };
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+    <Box sx={{ display: 'flex', ...fullHeight, bgcolor: 'background.default' }}>
       <Drawer
         variant="permanent"
         sx={{
@@ -80,7 +85,7 @@ const AppLayout = () => {
           flexDirection: 'column',
           width: '100%',
           minWidth: 0,
-          minHeight: '100vh',
+          ...fullHeight,
         }}
       >
         <Topbar
@@ -95,7 +100,10 @@ const AppLayout = () => {
 
         <Box
           sx={{
-            p: 3,
+            p: { xs: 1, sm: 2, md: 3 },
+            width: '100%',
+            maxWidth: 1440,
+            mx: 'auto',
             flex: 1,
             minHeight: 0,
             minWidth: 0,

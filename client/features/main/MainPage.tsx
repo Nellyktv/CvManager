@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Stack, Typography, Skeleton } from '@mui/material';
+import { Box, Stack, Typography, Skeleton } from '@mui/material';
+import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
+import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import { type GridColDef } from '@mui/x-data-grid';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
@@ -53,18 +57,26 @@ const MainPage = () => {
     {
       value: statsData.positionsCount,
       label: t('dashboard.totalPositions'),
+      icon: <WorkOutlineIcon />,
+      color: '#4F46E5',
     },
     {
       value: statsData.cvsCount,
       label: t('dashboard.totalCvs'),
+      icon: <DescriptionOutlinedIcon />,
+      color: '#7C3AED',
     },
     {
       value: statsData.candidatesCount,
       label: t('dashboard.candidates'),
+      icon: <PersonOutlineIcon />,
+      color: '#14B8A6',
     },
     {
       value: statsData.recruitersCount,
       label: t('dashboard.recruiters'),
+      icon: <GroupsOutlinedIcon />,
+      color: '#F59E0B',
     },
   ];
 
@@ -119,26 +131,23 @@ const MainPage = () => {
       <Stack gap={2} sx={{ m: 1 }}>
         <Skeleton variant="text" height={48} width="30%" />
 
-        <Stack direction="row" gap={2} flexWrap="wrap">
-          <Skeleton variant="rounded" width={200} height={100} />
-          <Skeleton variant="rounded" width={200} height={100} />
-          <Skeleton variant="rounded" width={200} height={100} />
-          <Skeleton variant="rounded" width={200} height={100} />
-        </Stack>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', lg: 'repeat(4, minmax(0, 1fr))' },
+            gap: 2,
+          }}
+        >
+          {[0, 1, 2, 3].map((key) => (
+            <Skeleton key={key} variant="rounded" height={100} sx={{ borderRadius: '16px' }} />
+          ))}
+        </Box>
 
         <Skeleton variant="rounded" height={150} />
 
-        <Stack direction="row" gap={2} flexWrap="wrap">
-          <Skeleton
-            variant="rounded"
-            height={400}
-            sx={{ flexGrow: 1, minWidth: 320 }}
-          />
-          <Skeleton
-            variant="rounded"
-            height={400}
-            sx={{ flexGrow: 1, minWidth: 320 }}
-          />
+        <Stack direction={{ xs: 'column', lg: 'row' }} gap={2}>
+          <Skeleton variant="rounded" height={400} sx={{ flex: 1, borderRadius: '16px' }} />
+          <Skeleton variant="rounded" height={400} sx={{ flex: 1, borderRadius: '16px' }} />
         </Stack>
       </Stack>
     );
@@ -146,7 +155,7 @@ const MainPage = () => {
 
   return (
     <>
-      <Typography variant="h4" sx={{ m: 1 }}>
+      <Typography variant="h4" component="h1" sx={{ m: 1, mb: { xs: 1, sm: 2 } }}>
         {t('nav.dashboard')}
       </Typography>
 
@@ -154,7 +163,7 @@ const MainPage = () => {
 
       <TagCloud tags={tags} onTagClick={handleTagClick} />
 
-      <Stack direction="row" gap={2} sx={{ m: 1 }} flexWrap="wrap">
+      <Stack direction={{ xs: 'column', lg: 'row' }} gap={2} sx={{ m: 1 }}>
         <PositionsTable
           title={t('dashboard.latestPositions')}
           rows={latestPositions}

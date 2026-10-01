@@ -99,7 +99,7 @@ const CandidateContactForm = ({
   };
 
   return (
-    <Paper sx={{ p: 3, m: 1, borderRadius: 3, maxWidth: 640 }}>
+    <Paper sx={{ p: 3, m: 1, borderRadius: '12px', maxWidth: 640 }}>
       <Stack gap={2}>
         <Typography variant="h6">{t('profile.contactsTitle')}</Typography>
 

@@ -1,15 +1,17 @@
 
-import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import { useMemo } from 'react';
+import { CssBaseline, ThemeProvider } from '@mui/material';
 import { SnackbarProvider } from 'notistack';
 
 import AppRouter from './routes/AppRouter';
 import { useThemeStore } from './store/ThemeStore';
+import { createAppTheme } from './theme';
 
 import './App.css';
 
 function App() {
   const mode = useThemeStore((state) => state.theme);
-  const theme = createTheme({ palette: { mode } });
+  const theme = useMemo(() => createAppTheme(mode), [mode]);
 
 
   return (

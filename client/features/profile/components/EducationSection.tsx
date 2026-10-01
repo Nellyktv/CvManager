@@ -123,7 +123,7 @@ const EducationSection = ({ canEdit }: Props) => {
   };
 
   return (
-    <Paper sx={{ p: 3, m: 1, borderRadius: 3 }}>
+    <Paper sx={{ p: 3, m: 1, borderRadius: '12px' }}>
       <Typography variant="h6" gutterBottom>
         {t('profile.educationTitle')}
       </Typography>

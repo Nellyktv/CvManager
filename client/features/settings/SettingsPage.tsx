@@ -67,7 +67,7 @@ const SettingsPage = () => {
         {t('settings.title')}
       </Typography>
 
-      <Paper sx={{ p: 3, m: 1, borderRadius: 3, maxWidth: 560 }}>
+      <Paper sx={{ p: 3, m: 1, borderRadius: '12px', maxWidth: 560 }}>
         <Typography variant="h6" sx={{ m: 1 }}>
           {t('settings.preferences')}
         </Typography>
@@ -113,7 +113,7 @@ const SettingsPage = () => {
         </Stack>
       </Paper>
 
-      <Paper sx={{ p: 3, m: 1, borderRadius: 3, maxWidth: 560 }}>
+      <Paper sx={{ p: 3, m: 1, borderRadius: '12px', maxWidth: 560 }}>
         <Typography variant="h6" sx={{ m: 1 }}>
           {t('settings.password')}
         </Typography>

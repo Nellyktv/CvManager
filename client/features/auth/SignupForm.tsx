@@ -97,14 +97,18 @@ const SignupForm = ({
 
   return (
     <Paper
-      elevation={6}
+      variant="outlined"
       component="form"
       onSubmit={handleSubmit(onSubmit)}
       sx={{
         width: '100%',
-        maxWidth: 400,
-        p: 4,
-        borderRadius: 3,
+        maxWidth: 420,
+        p: { xs: 3, sm: 4 },
+        borderRadius: '20px',
+        boxShadow: (theme) =>
+          theme.palette.mode === 'dark'
+            ? '0 24px 48px -12px rgba(0, 0, 0, 0.6)'
+            : '0 24px 48px -12px rgba(15, 23, 42, 0.12)',
       }}
     >
       <Stack spacing={2.5}>

@@ -73,6 +73,8 @@ const EditorialSidebarPreview = ({
           sx={{
             bgcolor: '#1f3a4c',
             color: '#f4f8fb',
+            minWidth: 0,
+            overflowWrap: 'break-word',
             px: 2.25,
             py: 3,
             display: 'flex',

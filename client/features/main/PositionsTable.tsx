@@ -11,12 +11,12 @@ type Props = {
 
 const PositionsTable = ({ title, rows, columns }: Props) => {
   return (
-    <Paper sx={{ p: 2, borderRadius: 3, flexGrow: 1, minWidth: 320 }}>
+    <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: '16px', flex: 1, minWidth: 0 }}>
       <Typography variant="h6" sx={{ mb: 2 }}>
         {title}
       </Typography>
 
-      <Box sx={{ height: 400 }}>
+      <Box sx={{ height: 400, width: '100%' }}>
         <DataGrid
           rows={rows}
           columns={columns}

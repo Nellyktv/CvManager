@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 
 import { navItems } from './AppLayout.constants';
 import type { UserRole } from '../../../store/UserStore';
+import { brandGradient } from '../../../theme';
 
 type SidebarProps = {
   role: UserRole | '';
@@ -33,8 +34,15 @@ const Sidebar = ({ role, onClose }: SidebarProps) => {
     <>
       <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1} sx={{ p: 1, m: 1 }}>
         <Stack direction="row" alignItems="center" gap={1}>
-          <Avatar sx={{ borderRadius: 2 }}>CV</Avatar>
-          <Typography variant="h6">CV Manager</Typography>
+          <Avatar
+            variant="rounded"
+            sx={{ background: brandGradient, color: '#fff', fontWeight: 700, fontSize: 15, borderRadius: '10px' }}
+          >
+            CV
+          </Avatar>
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+            CV Manager
+          </Typography>
         </Stack>
 
         <IconButton
@@ -45,15 +53,12 @@ const Sidebar = ({ role, onClose }: SidebarProps) => {
         </IconButton>
       </Stack>
 
-      <List>
+      <List sx={{ px: 0.5 }}>
         {navItems
           .filter((el) => el.roles.includes(role))
           .map((el) => (
             <Link to={el.linkTo} key={el.key} onClick={onClose}>
-              <ListItemButton
-                selected={isActive(el.linkTo)}
-                sx={{ borderRadius: 2 }}
-              >
+              <ListItemButton selected={isActive(el.linkTo)}>
                 <ListItemIcon>{el.icon}</ListItemIcon>
                 <ListItemText primary={t(el.i18nKey)} />
               </ListItemButton>

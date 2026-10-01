@@ -1,9 +1,5 @@
 import { type ReactNode } from 'react';
 
-/**
- * Restricted Markdown → React nodes (no HTML, no dangerouslySetInnerHTML).
- * Supports paragraphs, **bold**, *italic*, unordered lists, and http(s) links.
- */
 const INLINE_RE =
   /(\*\*(.+?)\*\*|\*(.+?)\*|\[([^\]]+)\]\((https?:\/\/[^)\s]+)\))/g;
 

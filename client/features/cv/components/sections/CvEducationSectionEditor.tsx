@@ -70,7 +70,7 @@ const CvEducationSectionEditor = ({
           sx={{
             border: 1,
             borderColor: 'divider',
-            borderRadius: 2,
+            borderRadius: '8px',
             p: 2,
           }}
         >

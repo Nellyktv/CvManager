@@ -63,10 +63,8 @@ export function SalesforceDialog({ open, onClose, onSuccess, defaultPhone }: Sal
         industry: '',
         additionalInfo: '',
       });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : t('profile.salesforceSyncError');
-      enqueueSnackbar(errorMessage, { variant: 'error' });
+    } catch {
+      enqueueSnackbar(t('profile.salesforceSyncError'), { variant: 'error' });
     } finally {
       setLoading(false);
     }

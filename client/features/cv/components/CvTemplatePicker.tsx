@@ -35,7 +35,7 @@ const TemplateThumbnail = ({ templateKey }: { templateKey: CvTemplateKey }) => (
     sx={{
       width: 56,
       height: 40,
-      borderRadius: 0.5,
+      borderRadius: '2px',
       border: '1px solid',
       borderColor: 'divider',
       overflow: 'hidden',
@@ -110,7 +110,7 @@ const CvTemplatePicker = ({ value, onChange, disabled = false }: CvTemplatePicke
         aria-expanded={open ? 'true' : undefined}
         aria-controls={open ? menuId : undefined}
       >
-        {t('cv.templateSelection')}:{' '}
+        {t('cv.templateSelection')}:{'\u00a0'}
         <Box component="span">{currentName}</Box>
       </Button>
       <Menu

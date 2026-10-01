@@ -41,7 +41,8 @@ const LoginForm = ({
   linkName,
   linkTo,
 }: Props) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const googleLocale = i18n.language.startsWith('ru') ? 'ru' : 'en';
   const [showPassword, setShowPassword] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -108,14 +109,18 @@ const LoginForm = ({
 
   return (
     <Paper
-      elevation={6}
+      variant="outlined"
       component="form"
       onSubmit={handleSubmit(onSubmit)}
       sx={{
         width: '100%',
-        maxWidth: 400,
-        p: 4,
-        borderRadius: 3,
+        maxWidth: 420,
+        p: { xs: 3, sm: 4 },
+        borderRadius: '20px',
+        boxShadow: (theme) =>
+          theme.palette.mode === 'dark'
+            ? '0 24px 48px -12px rgba(0, 0, 0, 0.6)'
+            : '0 24px 48px -12px rgba(15, 23, 42, 0.12)',
       }}
     >
       <Stack spacing={2.5}>
@@ -151,12 +156,16 @@ const LoginForm = ({
           }}
         />
 
-        <Button type="submit" variant="contained">
+        <Button type="submit" variant="contained" size="large">
           {btnName}
         </Button>
 
         <Stack spacing={2} alignItems="center">
-          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+          <GoogleOAuthProvider
+            key={googleLocale}
+            clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}
+            locale={googleLocale}
+          >
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
               onError={() => setSubmitError(t('auth.googleLoginError'))}

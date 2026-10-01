@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 const httpUrl = z.httpUrl();
 
-/** Known HTML elements only — TypeScript generics like Array<T> / List<a> must pass. */
 const HTML_TAG_NAMES = new Set([
   'a',
   'abbr',
@@ -123,7 +122,6 @@ const TAG_CANDIDATE_RE = /<\/?([a-zA-Z][a-zA-Z0-9]*)\b[^>]*>/g;
 
 const isIdentifierChar = (ch: string) => /[A-Za-z0-9_$]/.test(ch);
 
-/** True for real HTML tags; false for generic type args like List<a> / Foo<p>. */
 const isActualHtmlTag = (value: string, full: string, name: string, index: number) => {
   if (!HTML_TAG_NAMES.has(name.toLowerCase())) return false;
   if (full.startsWith('</')) return true;

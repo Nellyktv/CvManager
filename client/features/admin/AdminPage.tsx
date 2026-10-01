@@ -243,7 +243,7 @@ const AdminPage = () => {
         {t('users.title')}
       </Typography>
 
-      <Paper sx={{ p: 2, m: 1, borderRadius: 3 }}>
+      <Paper sx={{ p: 2, m: 1, borderRadius: '12px' }}>
         <UsersToolbar
           selectedCount={selectedIds.length}
           anyBlocked={anyBlocked}

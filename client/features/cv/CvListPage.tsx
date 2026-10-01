@@ -52,7 +52,7 @@ const CvListPage = () => {
         {t('nav.cvs')}
       </Typography>
 
-      <Paper sx={{ p: 2, m: 1, borderRadius: 3 }}>
+      <Paper sx={{ p: 2, m: 1, borderRadius: '12px' }}>
         <Box sx={{ height: 400 }}>
           <DataGrid
             rows={rows}

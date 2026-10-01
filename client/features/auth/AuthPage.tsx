@@ -6,6 +6,7 @@ import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import LoginForm from './LoginForm';
 import SignupForm from './SignupForm';
 import { useThemeStore } from '../../store/ThemeStore';
+import { brandGradient } from '../../theme';
 import { LOGIN_ROUTE, PUBLIC_ROUTE, REGISTER_ROUTE } from '../../shared/utils/constsLinks';
 
 type AuthPageProps = {
@@ -22,17 +23,37 @@ const AuthPage = ({ loginPage }: AuthPageProps) => {
     <Stack
       alignItems="center"
       justifyContent="center"
-      minHeight="100vh"
       bgcolor="background.default"
       p={2}
       gap={2}
+      sx={{
+        minHeight: '100vh',
+        '@supports (min-height: 100dvh)': { minHeight: '100dvh' },
+        position: 'relative',
+        overflow: 'hidden',
+        isolation: 'isolate',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          zIndex: -1,
+          width: { xs: 360, md: 640 },
+          height: { xs: 360, md: 640 },
+          top: { xs: -160, md: -260 },
+          right: { xs: -160, md: -200 },
+          borderRadius: '50%',
+          background: brandGradient,
+          opacity: 0.18,
+          filter: 'blur(80px)',
+          pointerEvents: 'none',
+        },
+      }}
     >
       <Stack
         direction="row"
         alignItems="center"
         justifyContent="flex-end"
         gap={1}
-        sx={{ width: '100%', maxWidth: 400 }}
+        sx={{ width: '100%', maxWidth: 420 }}
       >
         <Link
           component={RouterLink}

@@ -28,7 +28,6 @@ export type Project = {
   endDate?: string;
   links: CvLink[];
   descriptionMarkdown?: string;
-  /** Legacy profile field retained for read/backfill fallback only. */
   description?: string;
   displayOrder?: number;
 };

@@ -5,7 +5,6 @@ export type SkillGroupBucket = {
   skills: CvSkill[];
 };
 
-/** Preserve first-seen group order; ungrouped skills follow as one bucket. */
 export const groupSkills = (skills: CvSkill[]): SkillGroupBucket[] => {
   const order: string[] = [];
   const byGroup = new Map<string, CvSkill[]>();

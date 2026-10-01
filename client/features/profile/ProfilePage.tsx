@@ -211,7 +211,7 @@ const ProfilePage = () => {
         {isOwner ? t('profile.myProfile') : t('profile.candidateProfile')}
       </Typography>
 
-      <Paper sx={{ p: 3, m: 1, borderRadius: 3, maxWidth: 640 }}>
+      <Paper sx={{ p: 3, m: 1, borderRadius: '12px', maxWidth: 640 }}>
         <Stack gap={2}>
           <Stack direction="row" gap={2} alignItems="center">
             <Avatar sx={{ width: 72, height: 72 }}>{initials}</Avatar>
@@ -275,7 +275,7 @@ const ProfilePage = () => {
 
       {isCandidateProfile &&
         (loadingContacts ? (
-          <Paper sx={{ p: 3, m: 1, borderRadius: 3, maxWidth: 640 }}>
+          <Paper sx={{ p: 3, m: 1, borderRadius: '12px', maxWidth: 640 }}>
             <Stack gap={2}>
               <Skeleton variant="text" width={180} height={32} />
               <Skeleton variant="rounded" height={56} />
@@ -293,7 +293,7 @@ const ProfilePage = () => {
         ))}
 
       {isCandidateProfile && (
-        <Paper sx={{ p: 3, m: 1, borderRadius: 3, maxWidth: 640 }}>
+        <Paper sx={{ p: 3, m: 1, borderRadius: '12px', maxWidth: 640 }}>
           <Typography variant="h6" gutterBottom>
             {t('profile.attributesTitle')}
           </Typography>
@@ -325,7 +325,7 @@ const ProfilePage = () => {
       {isCandidateProfile && <EducationSection canEdit />}
 
       {isCandidateProfile && (
-        <Paper sx={{ p: 3, m: 1, borderRadius: 3 }}>
+        <Paper sx={{ p: 3, m: 1, borderRadius: '12px' }}>
           <Typography variant="h6" gutterBottom>
             {t('profile.projectsTitle')}
           </Typography>
@@ -380,7 +380,7 @@ const ProfilePage = () => {
         defaultPhone={candidateProfile.phone}
       />
 
-      <Paper sx={{ p: 3, m: 1, borderRadius: 3 }}>
+      <Paper sx={{ p: 3, m: 1, borderRadius: '12px' }}>
         <Typography variant="h6" gutterBottom>
           {t('profile.myCvs')}
         </Typography>

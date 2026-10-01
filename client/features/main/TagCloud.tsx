@@ -12,7 +12,7 @@ const TagCloud = ({ tags, onTagClick }: Props) => {
   const { t } = useTranslation();
 
   return (
-    <Paper sx={{ p: 2, m: 1, borderRadius: 3 }}>
+    <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 }, m: 1, mt: 2, borderRadius: '16px' }}>
       <Typography variant="h6" sx={{ mb: 2 }}>
         {t('dashboard.tagCloud')}
       </Typography>

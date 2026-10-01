@@ -52,12 +52,12 @@ const Topbar = ({
 
   return (
     <AppBar
-      position="static"
+      position="sticky"
       color="inherit"
       elevation={0}
-      sx={{ borderBottom: 1, borderColor: 'divider' }}
+      sx={{ top: 0, borderBottom: 1, borderColor: 'divider' }}
     >
-      <Toolbar>
+      <Toolbar sx={{ px: { xs: 1, sm: 2, md: 3 }, gap: 1 }}>
         <IconButton
           onClick={onMenuClick}
           sx={{ display: { xs: 'inline-flex', md: 'none' }, mr: 1 }}
@@ -98,7 +98,9 @@ const Topbar = ({
               </IconButton>
 
               <Stack direction="row" alignItems="center" gap={1}>
-                <Avatar>{initials}</Avatar>
+                <Avatar sx={{ width: 36, height: 36, fontSize: 14, fontWeight: 600, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+                  {initials}
+                </Avatar>
                 <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
                   <Typography variant="body2">
                     {displayName || email}

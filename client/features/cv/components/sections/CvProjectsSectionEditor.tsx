@@ -70,7 +70,7 @@ const CvProjectsSectionEditor = ({
         <Stack
           key={index}
           gap={1.5}
-          sx={{ border: 1, borderColor: 'divider', borderRadius: 2, p: 1.5 }}
+          sx={{ border: 1, borderColor: 'divider', borderRadius: '8px', p: 1.5 }}
         >
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography variant="subtitle2">

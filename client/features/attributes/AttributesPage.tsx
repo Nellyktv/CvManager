@@ -81,7 +81,7 @@ const AttributesPage = () => {
         {t('nav.attributeLibrary')}
       </Typography>
 
-      <Paper sx={{ p: 2, m: 1, borderRadius: 3 }}>
+      <Paper sx={{ p: 2, m: 1, borderRadius: '12px' }}>
         <CrudToolbar
           selectedCount={selectedIds.length}
           onDelete={handleDelete}

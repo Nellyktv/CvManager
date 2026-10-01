@@ -8,7 +8,6 @@ type CvDocumentFrameProps = {
   children: ReactNode;
 };
 
-/** Theme-aware workspace chrome around a forced-light A4 document surface. */
 const CvDocumentFrame = ({ children }: CvDocumentFrameProps) => {
   const { i18n } = useTranslation();
   const lang = cvDocumentLocale(i18n.language);
@@ -29,14 +28,12 @@ const CvDocumentFrame = ({ children }: CvDocumentFrameProps) => {
         sx={{
           width: '100%',
           maxWidth: 794,
-          // A4 proportions at ~96dpi; height grows with content past one page
           minHeight: 'calc(794px * 297 / 210)',
           boxSizing: 'border-box',
           bgcolor: '#ffffff',
           color: '#1a1a1a',
           boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
           overflow: 'visible',
-          // Document styles stay independent of app palette.mode
           '& a': {
             color: '#0b4f6c',
           },
@@ -56,7 +53,7 @@ const CvDocumentFrame = ({ children }: CvDocumentFrameProps) => {
             outline: '2px solid #0b4f6c',
             outlineOffset: 3,
             backgroundColor: 'rgba(11, 79, 108, 0.06)',
-            borderRadius: 2,
+            borderRadius: '8px',
             transition:
               'background-color 160ms ease, outline-color 160ms ease, box-shadow 160ms ease',
             '@media (prefers-reduced-motion: reduce)': {

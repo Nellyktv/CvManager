@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
 import { useSearchParams, useNavigate } from 'react-router';
 import { useState } from 'react';
+import dayjs from 'dayjs';
 
 import CrudToolbar from '../../shared/components/toolbars/CrudToolbar';
 import { api } from '../../api/axios.api';
@@ -54,6 +55,7 @@ const PositionPage = () => {
       headerName: t('positions.columnUpdated'),
       flex: 1,
       minWidth: 130,
+      valueFormatter: (value: string) => (value ? dayjs(value).format('DD.MM.YYYY') : ''),
     },
   ];
 
@@ -201,7 +203,7 @@ const PositionPage = () => {
         {t('nav.positions')}
       </Typography>
 
-      <Paper sx={{ p: 2, m: 1, borderRadius: 3 }}>
+      <Paper sx={{ p: 2, m: 1, borderRadius: '12px' }}>
         {(role === 'RECRUITER' || role === 'ADMIN') && (
           <CrudToolbar
             selectedCount={selectedIds.length}

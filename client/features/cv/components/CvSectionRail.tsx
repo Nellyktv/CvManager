@@ -92,7 +92,7 @@ const CvSectionRail = ({
             aria-label={accessibleName}
             onClick={() => onChange(section)}
             sx={{
-              borderRadius: 2,
+              borderRadius: '8px',
               flex: horizontal ? '0 0 auto' : undefined,
               minWidth: horizontal ? 'fit-content' : undefined,
               py: 0.75,

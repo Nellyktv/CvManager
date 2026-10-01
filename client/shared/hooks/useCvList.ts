@@ -33,7 +33,6 @@ export type ServerCv = {
   user: User | null;
 };
 
-/** Safe list-row mapping shared by CV list and search. Missing status → draft. */
 export const toCvRow = (el: ServerCv): CvRow => {
   const firstName = el.user ? el.user.firstName || '' : '';
   const lastName = el.user ? el.user.lastName || '' : '';

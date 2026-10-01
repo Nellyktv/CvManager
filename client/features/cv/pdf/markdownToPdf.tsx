@@ -1,10 +1,6 @@
 import { type ReactNode } from 'react';
 import { Link, Text, View, StyleSheet } from '@react-pdf/renderer';
 
-/**
- * Restricted Markdown → React-PDF nodes (no HTML, no images, no code blocks).
- * Supports paragraphs, **bold**, *italic*, unordered lists, and http(s) links.
- */
 const INLINE_RE =
   /(\*\*(.+?)\*\*|\*(.+?)\*|\[([^\]]+)\]\((https?:\/\/[^)\s]+)\))/g;
 

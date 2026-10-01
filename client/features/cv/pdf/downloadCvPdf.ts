@@ -38,12 +38,10 @@ export const downloadCvPdf = async ({
   saveAs(blob, fileName);
 };
 
-/** Build a filesystem-safe PDF name from owner + position. */
 export const buildCvPdfFileName = (ownerName: string, positionTitle?: string): string => {
   const slug = (value: string) =>
     value
       .toLowerCase()
-      // Keep Unicode letters/numbers; collapse everything else (paths, controls, spaces).
       .replace(/[^\p{L}\p{N}]+/gu, '-')
       .replace(/^-+|-+$/g, '');
 

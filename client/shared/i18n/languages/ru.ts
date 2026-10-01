@@ -274,7 +274,7 @@ export const ru = {
     salesforceSyncing: 'Синхронизация...',
     salesforceSync: 'Синхронизировать с Salesforce',
     salesforceSyncSuccess: 'Успешно синхронизировано с Salesforce!',
-    salesforceSyncError: 'Не удалось синхронизировать с Salesforce',
+    salesforceSyncError: 'Произошла ошибка, попробуйте позже',
   },
   dashboard: {
     totalPositions: 'Всего позиций',

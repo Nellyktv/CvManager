@@ -274,7 +274,7 @@ export const en = {
     salesforceSyncing: 'Syncing...',
     salesforceSync: 'Sync to Salesforce',
     salesforceSyncSuccess: 'Successfully synced to Salesforce!',
-    salesforceSyncError: 'Failed to sync with Salesforce',
+    salesforceSyncError: 'An error occurred, please try again later',
   },
   dashboard: {
     totalPositions: 'Total Positions',

@@ -45,9 +45,6 @@ export const useCvWorkspace = (id: string | undefined) => {
   const [pendingContent, setPendingContent] = useState<CvContent | null>(null);
   const debouncedContent = useDebounce(pendingContent, CV_SAVE_DEBOUNCE_MS);
 
-  // Reset the workspace to a loading state as soon as the CV id changes.
-  // Done here (during render), not in an effect, because the effect below
-  // only ever calls setState from inside a promise callback.
   if (observedId !== id) {
     setObservedId(id);
     setCv(null);
@@ -108,7 +105,6 @@ export const useCvWorkspace = (id: string | undefined) => {
 
   useEffect(() => {
     if (!debouncedContent) return;
-    // Reacting to the debounce timer settling, not deriving redundant state.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     save({ content: debouncedContent });
     // eslint-disable-next-line react-hooks/exhaustive-deps
