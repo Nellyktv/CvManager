@@ -36,7 +36,8 @@ export const useCvWorkspace = (id: string | undefined) => {
   const [content, setContent] = useState<CvContent | null>(null);
   const [templateKey, setTemplateKey] = useState<CvTemplateKey>(DEFAULT_TEMPLATE_KEY);
   const [loading, setLoading] = useState(Boolean(id));
-  const [error, setError] = useState<string | null>(id ? null : t('cv.loadError'));
+  const [loadFailed, setLoadFailed] = useState(!id);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -51,37 +52,44 @@ export const useCvWorkspace = (id: string | undefined) => {
     setContent(null);
     setTemplateKey(DEFAULT_TEMPLATE_KEY);
     setLoading(Boolean(id));
-    setError(id ? null : t('cv.loadError'));
+    setLoadFailed(!id);
     setSaveError(null);
     setActionError(null);
     setPendingContent(null);
   }
 
-  const load = () => {
+  useEffect(() => {
     if (!id) return;
 
-    getCv(id)
+    const controller = new AbortController();
+    const { signal } = controller;
+    getCv(id, signal)
       .then((data) => {
+        if (signal.aborted) return;
         setCv(data.cv);
         setContent(data.cv.content || emptyCvContent());
         setTemplateKey(data.cv.templateKey || DEFAULT_TEMPLATE_KEY);
-        setError(null);
+        setLoadFailed(false);
         setIsSaved(false);
       })
       .catch(() => {
+        if (signal.aborted) return;
         setCv(null);
         setContent(null);
-        setError(t('cv.loadError'));
+        setLoadFailed(true);
       })
       .finally(() => {
-        setLoading(false);
+        if (!signal.aborted) setLoading(false);
       });
-  };
 
-  useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+    return () => controller.abort();
+  }, [id, loadAttempt]);
+
+  const reload = () => {
+    if (!id) return;
+    setLoading(true);
+    setLoadAttempt((attempt) => attempt + 1);
+  };
 
   const save = (patch: { content?: CvContent; templateKey?: CvTemplateKey }) => {
     if (!id) return;
@@ -170,7 +178,7 @@ export const useCvWorkspace = (id: string | undefined) => {
     content,
     templateKey,
     loading,
-    error,
+    error: loadFailed ? t('cv.loadError') : null,
     saveError,
     actionError,
     saving,
@@ -180,7 +188,7 @@ export const useCvWorkspace = (id: string | undefined) => {
     updateTemplate,
     refresh,
     publish,
-    reload: load,
+    reload,
     retrySave,
   };
 };

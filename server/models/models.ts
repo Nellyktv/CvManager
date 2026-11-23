@@ -8,6 +8,7 @@ import {
     type InferAttributes,
     type InferCreationAttributes,
     type NonAttribute,
+    type Transaction,
 } from 'sequelize';
 import type { UserRole } from '../types/auth.js';
 import type { CvContent } from '../schemas/cvContentSchema.js';
@@ -244,9 +245,9 @@ CandidateProfile.belongsTo(User);
 User.hasMany(Education);
 Education.belongsTo(User);
 
-const setPositionAttributes = (position: Position, attributes: Array<Attribute | number>) =>
+const setPositionAttributes = (position: Position, attributes: Array<Attribute | number>, transaction?: Transaction) =>
     (position as unknown as { setAttributes: BelongsToManySetAssociationsMixin<Attribute, number> })
-        .setAttributes(attributes);
+        .setAttributes(attributes, { transaction });
 
 export {
     User,

@@ -180,12 +180,21 @@ npm run test:run  # single run
 
 Vitest runs two projects: `client` (jsdom) and `server` (node). The tests cover role and token checks, the API error handler, CV content validation (HTML and unsafe links are rejected, date ranges), building a CV snapshot from a profile, and client utilities.
 
+To run the demo seed integration test against local PostgreSQL:
+
+```bash
+docker compose up -d db
+CV_SEED_INTEGRATION=1 npm run test:run
+```
+
+The test creates and removes its own temporary database. It uses the Compose PostgreSQL connection by default. Override it with `DB_HOST`, `DB_PORT`, `DB_USER` and `DB_PASSWORD` if needed. The database user needs permission to create databases.
+
 ### Other scripts
 
 ```bash
 npm run lint                                   # ESLint for the client and the server
 npm --prefix server run typecheck              # type-check the server
-npm --prefix server run seed:demo              # demo users, positions and CVs (skipped if they already exist)
+npm --prefix server run seed:demo              # add missing demo users, positions and CVs
 npm --prefix server run set-role <email> ADMIN # change a user's role (no arguments lists users)
 npm --prefix server run backfill:cv-snapshots  # one-time migration of old CV rows, safe to re-run
 ```

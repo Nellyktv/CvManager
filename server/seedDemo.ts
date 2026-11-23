@@ -183,79 +183,114 @@ const candidates: DemoCandidate[] = [
 ];
 
 const run = async () => {
-    const existing = await User.findOne({ where: { email: users.admin.email } });
-    if (existing) {
-        console.log('Demo data already exists, nothing to do');
-        await sequelize.close();
-        return;
-    }
-
     const password = await bcrypt.hash(DEMO_PASSWORD, 10);
 
-    await User.create({ ...users.admin, password, isActivated: true });
-    const recruiter = await User.create({ ...users.recruiter, password, isActivated: true });
-
-    const attributeByName: Record<string, Attribute> = {};
-    for (const attr of attributes) {
-        const [record] = await Attribute.findOrCreate({
-            where: { name: attr.name },
-            defaults: { ...attr, type: 'Text' },
-        });
-        attributeByName[attr.name] = record;
-    }
-
-    const positionByTitle: Record<string, Position> = {};
-    for (const { skills, ...data } of positions) {
-        const position = await Position.create({ ...data, userIdCreator: recruiter.id, userId: recruiter.id });
-        await setPositionAttributes(position, skills.map((name) => attributeByName[name]));
-        positionByTitle[data.title] = position;
-    }
-
-    for (const candidate of candidates) {
-        const user = await User.create({
-            ...candidate.user,
-            password,
-            role: 'CANDIDATE',
-            isActivated: true,
+    await sequelize.transaction(async (transaction) => {
+        // Serialize demo seed runs, including lookups on tables without unique seed keys.
+        await sequelize.query('SELECT pg_advisory_xact_lock(hashtext(:key))', {
+            replacements: { key: 'cvmanager:seed:demo' },
+            transaction,
         });
 
-        await CandidateProfile.create({
-            ...candidate.profile,
-            userId: user.id,
-            publicEmail: user.email,
-        });
-
-        for (const [name, value] of Object.entries(candidate.skills)) {
-            await CandidateSkills.create({
-                userId: user.id,
-                attributeId: attributeByName[name].id,
-                value,
+        const ensureUser = async (data: typeof users.admin) => {
+            const [user] = await User.findOrCreate({
+                where: { email: data.email },
+                defaults: { ...data, password, isActivated: true },
+                transaction,
             });
-        }
+            if (user.role !== data.role) {
+                throw new Error(`Demo email ${data.email} already belongs to a user with role ${user.role}`);
+            }
+            return user;
+        };
 
-        for (const [index, entry] of candidate.education.entries()) {
-            await Education.create({ ...entry, userId: user.id, displayOrder: index });
-        }
+        await ensureUser(users.admin);
+        const recruiter = await ensureUser(users.recruiter);
 
-        for (const [index, project] of candidate.projects.entries()) {
-            await Project.create({ ...project, userId: user.id, displayOrder: index });
-        }
-
-        const content = validateCvContent(await buildSnapshotFromProfile(user.id));
-        for (const cv of candidate.cvs) {
-            await Cv.create({
-                userId: user.id,
-                positionId: positionByTitle[cv.position].id,
-                status: cv.status,
-                templateKey: cv.templateKey,
-                content,
-                lastSyncedFromProfileAt: new Date(),
+        const attributeByName: Record<string, Attribute> = {};
+        for (const attr of attributes) {
+            const [record] = await Attribute.findOrCreate({
+                where: { name: attr.name },
+                defaults: { ...attr, type: 'Text' },
+                transaction,
             });
+            attributeByName[attr.name] = record;
         }
-    }
 
-    console.log(`OK: demo data created. Password for all demo users: ${DEMO_PASSWORD}`);
-    await sequelize.close();
+        const positionByTitle: Record<string, Position> = {};
+        for (const { skills, ...data } of positions) {
+            const [position, created] = await Position.findOrCreate({
+                where: { title: data.title, userId: recruiter.id },
+                defaults: { ...data, userIdCreator: recruiter.id, userId: recruiter.id },
+                transaction,
+            });
+            if (created) {
+                await setPositionAttributes(position, skills.map((name) => attributeByName[name]), transaction);
+            }
+            positionByTitle[data.title] = position;
+        }
+
+        for (const candidate of candidates) {
+            const user = await ensureUser({ ...candidate.user, role: 'CANDIDATE' });
+            const { id: userId } = user;
+
+            await CandidateProfile.findOrCreate({
+                where: { userId },
+                defaults: { ...candidate.profile, userId, publicEmail: user.email },
+                transaction,
+            });
+
+            for (const [name, value] of Object.entries(candidate.skills)) {
+                const attributeId = attributeByName[name].id;
+                await CandidateSkills.findOrCreate({
+                    where: { userId, attributeId },
+                    defaults: { userId, attributeId, value },
+                    transaction,
+                });
+            }
+
+            for (const [displayOrder, entry] of candidate.education.entries()) {
+                await Education.findOrCreate({
+                    where: { userId, institution: entry.institution, startDate: entry.startDate },
+                    defaults: { ...entry, userId, displayOrder },
+                    transaction,
+                });
+            }
+
+            for (const [displayOrder, project] of candidate.projects.entries()) {
+                await Project.findOrCreate({
+                    where: { userId, title: project.title, startDate: project.startDate },
+                    defaults: { ...project, userId, displayOrder },
+                    transaction,
+                });
+            }
+
+            const missingCvs = [];
+            for (const cv of candidate.cvs) {
+                const positionId = positionByTitle[cv.position].id;
+                const existing = await Cv.findOne({ where: { userId, positionId }, transaction });
+                if (!existing) missingCvs.push({ cv, positionId });
+            }
+            if (missingCvs.length === 0) continue;
+
+            const content = validateCvContent(await buildSnapshotFromProfile(userId, transaction));
+            for (const { cv, positionId } of missingCvs) {
+                await Cv.create({
+                    userId,
+                    positionId,
+                    status: cv.status,
+                    templateKey: cv.templateKey,
+                    content,
+                    lastSyncedFromProfileAt: new Date(),
+                }, { transaction });
+            }
+        }
+    });
+
+    console.log('OK: demo data is ready.');
 };
 
-run();
+run().catch((error: unknown) => {
+    console.error(error);
+    process.exitCode = 1;
+}).finally(() => sequelize.close());

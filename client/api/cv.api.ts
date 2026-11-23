@@ -28,8 +28,8 @@ export type CvUpdate = {
 
 export type CvSection = CvSectionKey;
 
-export const getCv = async (id: string) => {
-  const response = await api.get<{ cv: CvRecord }>(`/cv/${id}`);
+export const getCv = async (id: string, signal?: AbortSignal) => {
+  const response = await api.get<{ cv: CvRecord }>(`/cv/${id}`, { signal });
   return response.data;
 };
 

@@ -1,3 +1,4 @@
+import type { Transaction } from 'sequelize';
 import {
   Attribute,
   CandidateProfile,
@@ -65,15 +66,17 @@ const mapSkill = (skill: CandidateSkills) => ({
   value: asString(skill.value),
 });
 
-export const buildSnapshotFromProfile = async (userId: number): Promise<CvContent> => {
-  const user = await User.findByPk(userId, { attributes: ['id', 'firstName', 'lastName'] });
-  const profile = await CandidateProfile.findOne({ where: { userId } });
+export const buildSnapshotFromProfile = async (userId: number, transaction?: Transaction): Promise<CvContent> => {
+  const user = await User.findByPk(userId, { attributes: ['id', 'firstName', 'lastName'], transaction });
+  const profile = await CandidateProfile.findOne({ where: { userId }, transaction });
   const skills = await CandidateSkills.findAll({
     where: { userId },
+    transaction,
     include: [{ model: Attribute, as: 'attribute' }],
   });
   const education = await Education.findAll({
     where: { userId },
+    transaction,
     order: [
       ['displayOrder', 'ASC'],
       ['id', 'ASC'],
@@ -81,6 +84,7 @@ export const buildSnapshotFromProfile = async (userId: number): Promise<CvConten
   });
   const projects = await Project.findAll({
     where: { userId },
+    transaction,
     order: [
       ['displayOrder', 'ASC'],
       ['id', 'ASC'],
