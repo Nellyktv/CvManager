@@ -282,6 +282,10 @@ export const en = {
     salesforceSyncError: 'An error occurred, please try again later',
   },
   dashboard: {
+    demoExamples: 'Sample positions and CVs',
+    samplePosition: 'Select a position',
+    sampleCv: 'Select a CV',
+    noSamples: 'No published sample CVs yet.',
     totalPositions: 'Total Positions',
     totalCvs: 'Total CVs',
     candidates: 'Candidates',

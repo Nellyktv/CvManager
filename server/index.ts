@@ -1,3 +1,4 @@
+import { ensureDemo } from './ensureDemo.js';
 import 'dotenv/config';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -59,6 +60,9 @@ const start = async () => {
     }
     await sequelize.authenticate();
     await sequelize.sync({ alter: true });
+    if (process.env.RENDER_EXTERNAL_HOSTNAME === 'cvmanager-ousk.onrender.com') {
+        await ensureDemo();
+    }
     const server = app.listen(PORT, HOST, () => console.log(`Server started on PORT ${PORT}`));
     server.on('error', (error) => {
         console.error(error.message);

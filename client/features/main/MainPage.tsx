@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Box, Stack, Typography, Skeleton } from '@mui/material';
+import { Box, Button, Stack, Typography, Skeleton } from '@mui/material';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import { type GridColDef } from '@mui/x-data-grid';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import dayjs from 'dayjs';
 
 import { api } from '../../api/axios.api';
@@ -158,6 +158,10 @@ const MainPage = () => {
       <Typography variant="h4" component="h1" sx={{ m: 1, mb: { xs: 1, sm: 2 } }}>
         {t('nav.dashboard')}
       </Typography>
+
+      <Button component={Link} to="/demo" variant="outlined" sx={{ m: 1 }}>
+        {t('dashboard.demoExamples')}
+      </Button>
 
       <DashboardStats stats={stats} />
 

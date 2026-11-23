@@ -282,6 +282,10 @@ export const ru = {
     salesforceSyncError: 'Произошла ошибка, попробуйте позже',
   },
   dashboard: {
+    demoExamples: 'Примеры вакансий и резюме',
+    samplePosition: 'Выберите вакансию',
+    sampleCv: 'Выберите резюме',
+    noSamples: 'Опубликованных примеров резюме пока нет.',
     totalPositions: 'Всего позиций',
     totalCvs: 'Всего резюме',
     candidates: 'Кандидаты',

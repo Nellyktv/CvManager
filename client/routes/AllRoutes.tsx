@@ -1,3 +1,4 @@
+import DemoPage from '../features/main/DemoPage';
 import { Navigate } from 'react-router';
 import AdminPage from '../features/admin/AdminPage';
 import AuthPage from '../features/auth/AuthPage';
@@ -30,6 +31,7 @@ export const authPages = [
 ];
 
 export const publicRoutes = [
+  { path: '/demo', componentForRole: <DemoPage /> },
   { path: PUBLIC_ROUTE, componentForRole: <MainPage /> },
   { path: POSITION_ROUTE, componentForRole: <PositionPage /> },
 ];
