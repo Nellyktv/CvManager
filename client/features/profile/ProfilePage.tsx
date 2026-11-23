@@ -13,7 +13,7 @@ import {
 import { DataGrid, type GridColDef, type GridRowId } from '@mui/x-data-grid';
 import { useParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import useUserStore from '../../store/UserStore';
 import { useProfile } from './useProfile';
@@ -112,13 +112,8 @@ const ProfilePage = () => {
   const [selectedProjectIds, setSelectedProjectIds] = useState<GridRowId[]>([]);
   const [selectedCvIds, setSelectedCvIds] = useState<GridRowId[]>([]);
   const [sfDialogOpen, setSfDialogOpen] = useState(false);
-  const [sfSynced, setSfSynced] = useState(false);
-
-  useEffect(() => {
-    if (profile.salesforceContactId) {
-      setSfSynced(true);
-    }
-  }, [profile.salesforceContactId]);
+  const [syncedProfileId, setSyncedProfileId] = useState<number | null>(null);
+  const sfSynced = Boolean(profile.salesforceContactId) || syncedProfileId === profileId;
 
   const cvColumns: GridColDef[] = [
     {
@@ -373,12 +368,15 @@ const ProfilePage = () => {
         saving={savingProject}
       />
 
-      <SalesforceDialog
-        open={sfDialogOpen}
-        onClose={() => setSfDialogOpen(false)}
-        onSuccess={() => setSfSynced(true)}
-        defaultPhone={candidateProfile.phone}
-      />
+      {sfDialogOpen && (
+        <SalesforceDialog
+          key={profileId}
+          open={sfDialogOpen}
+          onClose={() => setSfDialogOpen(false)}
+          onSuccess={() => setSyncedProfileId(profileId)}
+          defaultPhone={candidateProfile.phone}
+        />
+      )}
 
       <Paper sx={{ p: 3, m: 1, borderRadius: '12px' }}>
         <Typography variant="h6" gutterBottom>

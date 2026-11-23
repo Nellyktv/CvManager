@@ -1,3 +1,4 @@
+import { createCvBody, routeId, skillTagQuery } from '../schemas/requestSchemas.js';
 import type { Request, Response } from 'express';
 import type { IdParams } from '../types/http.js';
 import { Op, type InferAttributes, type WhereOptions } from 'sequelize';
@@ -27,11 +28,7 @@ const assertCanMutateCv = (cv: Cv, user: AuthUser, message = 'You can modify onl
 
 const createCv = async (req: Request, res: Response) => {
     const user = getAuthUser(req);
-    const { positionId }: { positionId?: number } = req.body;
-
-    if (!positionId) {
-        throw ApiError.badRequest('positionId is required');
-    }
+    const { positionId } = parseOrBadRequest(createCvBody.parse, req.body);
 
     const position = await Position.findByPk(positionId, {
         include: [
@@ -74,11 +71,7 @@ const createCv = async (req: Request, res: Response) => {
 
 const getCv = async (req: Request<IdParams>, res: Response) => {
     const user = getAuthUser(req);
-    const { id } = req.params;
-
-    if (isNaN(Number(id))) {
-        throw ApiError.badRequest('Invalid CV id');
-    }
+    const id = parseOrBadRequest(routeId.parse, req.params.id);
 
     const cv = await Cv.findByPk(id, {
         include: [
@@ -110,10 +103,10 @@ const getCv = async (req: Request<IdParams>, res: Response) => {
 };
 
 const getCvsByPosition = async (req: Request<{ positionId: string }>, res: Response) => {
-    const { positionId } = req.params;
+    const positionId = parseOrBadRequest(routeId.parse, req.params.positionId);
 
     const cvs = await Cv.findAll({
-        where: { positionId: Number(positionId), status: 'published' },
+        where: { positionId, status: 'published' },
         include: [
             {
                 model: User,
@@ -129,7 +122,7 @@ const getCvsByPosition = async (req: Request<{ positionId: string }>, res: Respo
 
 const getAllCv = async (req: Request, res: Response) => {
     const user = getAuthUser(req);
-    const { tag } = req.query;
+    const tag = parseOrBadRequest(skillTagQuery.parse, req.query.tag);
     const where: Record<string, unknown> = {};
 
     if (user.role === 'CANDIDATE') {
@@ -139,7 +132,7 @@ const getAllCv = async (req: Request, res: Response) => {
         where.status = 'published';
     }
 
-    if (typeof tag === 'string' && tag) {
+    if (tag) {
         where.content = {
             [Op.contains]: { skills: [{ label: tag }] },
         };
@@ -166,7 +159,7 @@ const getAllCv = async (req: Request, res: Response) => {
 
 const updateCv = async (req: Request<IdParams>, res: Response) => {
     const user = getAuthUser(req);
-    const { id } = req.params;
+    const id = parseOrBadRequest(routeId.parse, req.params.id);
     const data = parseOrBadRequest(validateCvUpdate, req.body);
 
     const cv = await Cv.findByPk(id);
@@ -188,10 +181,10 @@ const updateCv = async (req: Request<IdParams>, res: Response) => {
 
 const refreshCvFromProfile = async (req: Request<IdParams>, res: Response) => {
     const user = getAuthUser(req);
-    const { id } = req.params;
+    const id = parseOrBadRequest(routeId.parse, req.params.id);
     const sections: unknown = req.body?.sections;
 
-    if (!Array.isArray(sections) || sections.length === 0) {
+    if (!Array.isArray(sections) || sections.length === 0 || sections.length > ALLOWED_REFRESH_SECTIONS.size) {
         throw ApiError.badRequest('sections must be a non-empty array');
     }
 
@@ -241,7 +234,7 @@ const refreshCvFromProfile = async (req: Request<IdParams>, res: Response) => {
 
 const publishCv = async (req: Request<IdParams>, res: Response) => {
     const user = getAuthUser(req);
-    const { id } = req.params;
+    const id = parseOrBadRequest(routeId.parse, req.params.id);
 
     const cv = await Cv.findByPk(id);
 
@@ -264,7 +257,7 @@ const publishCv = async (req: Request<IdParams>, res: Response) => {
 
 const deleteCv = async (req: Request<IdParams>, res: Response) => {
     const user = getAuthUser(req);
-    const { id } = req.params;
+    const id = parseOrBadRequest(routeId.parse, req.params.id);
 
     const cv = await Cv.findByPk(id);
 

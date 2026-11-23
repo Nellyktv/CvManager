@@ -2,7 +2,8 @@ import { z } from 'zod';
 
 export const cvTemplateKeys = ['editorial-sidebar', 'structured-minimal'] as const;
 
-const httpUrl = z.httpUrl();
+const httpUrl = z.httpUrl().max(2048);
+const shortText = z.string().max(255);
 
 const HTML_TAG_NAMES = new Set([
   'a',
@@ -142,52 +143,54 @@ export const containsHtmlTags = (value: string) => {
   return false;
 };
 
-const markdownText = z.string().refine((value) => !containsHtmlTags(value), {
-  error: 'Markdown must not contain HTML tags',
-});
+const markdownText = z.string().max(12_000).pipe(
+  z.string().refine((value) => !containsHtmlTags(value), {
+    error: 'Markdown must not contain HTML tags',
+  }),
+);
 
 const cvLinkSchema = z.object({
-  label: z.string(),
+  label: shortText,
   url: httpUrl,
 });
 
 const cvContentSchema = z.object({
   contact: z.object({
-    name: z.string(),
-    headline: z.string().optional(),
-    email: z.string().optional(),
-    phone: z.string().optional(),
-    location: z.string().optional(),
-    links: z.array(cvLinkSchema),
+    name: shortText,
+    headline: shortText.optional(),
+    email: shortText.optional(),
+    phone: shortText.optional(),
+    location: shortText.optional(),
+    links: z.array(cvLinkSchema).max(30),
   }),
   skills: z.array(
     z.object({
-      label: z.string(),
-      value: z.string().optional(),
-      group: z.string().optional(),
+      label: shortText,
+      value: z.string().max(5000).optional(),
+      group: shortText.optional(),
     }),
-  ),
+  ).max(150),
   education: z.array(
     z.object({
-      institution: z.string(),
-      degree: z.string().optional(),
-      field: z.string().optional(),
-      location: z.string().optional(),
+      institution: shortText,
+      degree: shortText.optional(),
+      field: shortText.optional(),
+      location: shortText.optional(),
       startDate: z.string().optional(),
       endDate: z.string().optional(),
-      description: z.string().optional(),
+      description: z.string().max(5000).optional(),
     }),
-  ),
+  ).max(50),
   projects: z.array(
     z.object({
-      title: z.string(),
-      role: z.string().optional(),
+      title: shortText,
+      role: shortText.optional(),
       startDate: z.string().optional(),
       endDate: z.string().optional(),
-      links: z.array(cvLinkSchema),
+      links: z.array(cvLinkSchema).max(30),
       descriptionMarkdown: markdownText.optional(),
     }),
-  ),
+  ).max(50),
 });
 
 const cvUpdateSchema = z
@@ -219,49 +222,49 @@ export const isValidDateRange = (data: DateRange) => {
   return true;
 };
 
-const optionalEmail = z.union([z.email(), z.literal(''), z.null()]).optional();
+const optionalEmail = z.union([z.email().max(254), z.literal(''), z.null()]).optional();
 const optionalUrl = z.union([httpUrl, z.literal(''), z.null()]).optional();
 
 export const profileUpdateSchema = z.object({
-  headline: z.string().nullable().optional(),
+  headline: shortText.nullable().optional(),
   publicEmail: optionalEmail,
-  phone: z.string().nullable().optional(),
-  location: z.string().nullable().optional(),
+  phone: shortText.nullable().optional(),
+  location: shortText.nullable().optional(),
   linkedinUrl: optionalUrl,
   githubUrl: optionalUrl,
   portfolioUrl: optionalUrl,
 });
 
 const educationBaseFields = {
-  degree: z.string().nullable().optional(),
-  field: z.string().nullable().optional(),
-  location: z.string().nullable().optional(),
+  degree: shortText.nullable().optional(),
+  field: shortText.nullable().optional(),
+  location: shortText.nullable().optional(),
   startDate: dateOnly.nullable().optional(),
   endDate: dateOnly.nullable().optional(),
-  description: z.string().nullable().optional(),
+  description: z.string().max(5000).nullable().optional(),
   displayOrder: z.int().nullable().optional(),
 };
 
 export const educationCreateSchema = z
   .object({
-    institution: z.string().min(1),
+    institution: z.string().min(1).max(255),
     ...educationBaseFields,
   })
   .refine(isValidDateRange, { error: 'Invalid date range' });
 
 export const educationUpdateSchema = z
   .object({
-    institution: z.string().min(1).optional(),
+    institution: z.string().min(1).max(255).optional(),
     ...educationBaseFields,
   })
   .refine(isValidDateRange, { error: 'Invalid date range' });
 
 const projectFields = {
-  title: z.string().min(1).optional(),
-  role: z.string().nullable().optional(),
+  title: z.string().min(1).max(255).optional(),
+  role: shortText.nullable().optional(),
   startDate: dateOnly.nullable().optional(),
   endDate: dateOnly.nullable().optional(),
-  links: z.array(cvLinkSchema).nullable().optional(),
+  links: z.array(cvLinkSchema).max(30).nullable().optional(),
   displayOrder: z.int().nullable().optional(),
   descriptionMarkdown: markdownText.nullable().optional(),
 };
@@ -269,7 +272,7 @@ const projectFields = {
 export const projectCreateSchema = z
   .object({
     ...projectFields,
-    title: z.string().min(1),
+    title: z.string().min(1).max(255),
   })
   .refine(isValidDateRange, { error: 'Invalid date range' });
 

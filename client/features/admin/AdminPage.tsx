@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Box, Chip, Paper, Typography } from '@mui/material';
 import { DataGrid, type GridColDef, type GridRowId } from '@mui/x-data-grid';
 import { useTranslation } from 'react-i18next';
@@ -123,15 +123,15 @@ const AdminPage = () => {
     });
   };
 
-  const showError = (error: unknown) => {
+  const showError = useCallback((error: unknown) => {
     console.error(error);
 
     enqueueSnackbar(t('common.error'), {
       variant: 'error',
     });
-  };
+  }, [enqueueSnackbar, t]);
 
-  const loadUsers = () => {
+  const loadUsers = useCallback(() => {
     api
       .get(USERS_ROUTE)
       .then((response) => {
@@ -143,11 +143,11 @@ const AdminPage = () => {
       .finally(() => {
         setIsLoading(false);
       });
-  };
+  }, [currentUser.id, showError]);
 
   useEffect(() => {
     loadUsers();
-  }, [currentUser.id]);
+  }, [loadUsers]);
 
   const handleDelete = async () => {
     let hasError = false;

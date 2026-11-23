@@ -1,190 +1,68 @@
-import { useState } from 'react';
-import {
-  Stack,
-  TextField,
-  Button,
-  Typography,
-  IconButton,
-  InputAdornment,
-  Paper,
-  Alert,
-  Link,
-} from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { Link as RouterLink, useNavigate } from 'react-router';
+import { useEffect, useState } from 'react';
+import { Alert, CircularProgress, Paper, Stack, Typography } from '@mui/material';
+import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { useForm, type SubmitHandler } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { jwtDecode } from 'jwt-decode';
-import {
-  GoogleLogin,
-  GoogleOAuthProvider,
-  type CredentialResponse,
-} from '@react-oauth/google';
-import { createLoginSchema, type LoginFormFields } from '../../shared/utils/shemas';
+import { GoogleLogin, GoogleOAuthProvider, type CredentialResponse } from '@react-oauth/google';
 import { api } from '../../api/axios.api';
 import useUserStore, { type UserRole } from '../../store/UserStore';
 import { PUBLIC_ROUTE } from '../../shared/utils/constsLinks';
 
-type Props = {
-  title: string;
-  btnName: string;
-  textForLink: string;
-  linkName: string;
-  linkTo: string;
-};
-
-const LoginForm = ({
-  title,
-  btnName,
-  textForLink,
-  linkName,
-  linkTo,
-}: Props) => {
+const LoginForm = () => {
   const { t, i18n } = useTranslation();
-  const googleLocale = i18n.language.startsWith('ru') ? 'ru' : 'en';
-  const [showPassword, setShowPassword] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const setToken = useUserStore((state) => state.setToken);
-  const setIsAuth = useUserStore((state) => state.setIsAuth);
-  const setUser = useUserStore((state) => state.setUser);
+  const { setToken, setUser, setIsAuth } = useUserStore();
+  const [clientId, setClientId] = useState<string | null>();
+  const [error, setError] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const schema = createLoginSchema({
-    invalidEmail: t('auth.invalidEmail'),
-    passwordMinLength: t('auth.passwordMinLength'),
-    passwordNeedsUppercase: t('auth.passwordNeedsUppercase'),
-    passwordNeedsNumber: t('auth.passwordNeedsNumber'),
-  });
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<LoginFormFields>({
-    resolver: zodResolver(schema),
-  });
-
-  const applyAuthToken = (token: string) => {
-    const decoded = jwtDecode<{ id: number; email: string; role: UserRole }>(
-      token,
-    );
-    setToken(token);
-    setUser({ id: decoded.id, email: decoded.email, role: decoded.role });
-    setIsAuth(true);
-    navigate(PUBLIC_ROUTE);
-  };
-
-  const onSubmit: SubmitHandler<LoginFormFields> = async (data) => {
-    setSubmitError(null);
-    try {
-      const response = await api.post('/user/login', data);
-      applyAuthToken(response.data.token);
-      reset();
-    } catch (error) {
-      console.error('Login error:', error);
-      setSubmitError(t('auth.loginError'));
-    }
-  };
-
-  const handleGoogleSuccess = async (
-    credentialResponse: CredentialResponse,
-  ) => {
-    setSubmitError(null);
-    try {
-      const response = await api.post('/user/google', {
-        credential: credentialResponse.credential,
+  useEffect(() => {
+    const controller = new AbortController();
+    api.get<{ clientId: string | null }>('/user/google-config', { signal: controller.signal })
+      .then(({ data }) => setClientId(data.clientId))
+      .catch(() => {
+        if (!controller.signal.aborted) setClientId(null);
       });
-      applyAuthToken(response.data.token);
-    } catch (error) {
-      console.error('Google login error:', error);
-      setSubmitError(t('auth.googleLoginError'));
-    }
-  };
+    return () => controller.abort();
+  }, []);
 
-  const viewPassword = () => {
-    setShowPassword((prev) => !prev);
+  const signIn = async ({ credential }: CredentialResponse) => {
+    setError(false);
+    setSubmitting(true);
+    try {
+      if (!credential) throw new Error('Google credential unavailable');
+      const { data } = await api.post<{ token: string }>('/user/google', { credential });
+      const { id, email, role } = jwtDecode<{ id: number; email: string; role: UserRole }>(data.token);
+      setToken(data.token);
+      setUser({ id, email, role });
+      setIsAuth(true);
+      navigate(PUBLIC_ROUTE);
+    } catch {
+      setError(true);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
-    <Paper
-      variant="outlined"
-      component="form"
-      onSubmit={handleSubmit(onSubmit)}
-      sx={{
-        width: '100%',
-        maxWidth: 420,
-        p: { xs: 3, sm: 4 },
-        borderRadius: '20px',
-        boxShadow: (theme) =>
-          theme.palette.mode === 'dark'
-            ? '0 24px 48px -12px rgba(0, 0, 0, 0.6)'
-            : '0 24px 48px -12px rgba(15, 23, 42, 0.12)',
-      }}
-    >
-      <Stack spacing={2.5}>
-        <Typography variant="h5">{title}</Typography>
-        {submitError && <Alert severity="error">{submitError}</Alert>}
-        <TextField
-          label={t('auth.email')}
-          type="email"
-          autoComplete="email"
-          error={!!errors.email}
-          helperText={errors.email?.message}
-          {...register('email')}
-        />
-
-        <TextField
-          fullWidth
-          label={t('auth.password')}
-          type={showPassword ? 'text' : 'password'}
-          autoComplete="current-password"
-          error={!!errors.password}
-          helperText={errors.password?.message}
-          {...register('password')}
-          slotProps={{
-            input: {
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={viewPassword} edge="end">
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            },
-          }}
-        />
-
-        <Button type="submit" variant="contained" size="large">
-          {btnName}
-        </Button>
-
-        <Stack spacing={2} alignItems="center">
+    <Paper variant="outlined" sx={{ width: '100%', maxWidth: 420, p: 3 }}>
+      <Stack alignItems="center" spacing={2}>
+        <Typography component="h1" variant="h5">{t('auth.loginTitle')}</Typography>
+        {(clientId === undefined || submitting) && <CircularProgress size={24} />}
+        {clientId === null && <Alert severity="warning">{t('auth.googleUnavailable')}</Alert>}
+        {error && <Alert severity="error">{t('auth.googleLoginError')}</Alert>}
+        {clientId && !submitting && (
           <GoogleOAuthProvider
-            key={googleLocale}
-            clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}
-            locale={googleLocale}
+            clientId={clientId}
+            locale={i18n.language.startsWith('ru') ? 'ru' : 'en'}
+            onScriptLoadError={() => setClientId(null)}
           >
             <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={() => setSubmitError(t('auth.googleLoginError'))}
-              text="continue_with"
+              onSuccess={(response) => void signIn(response)}
+              onError={() => setError(true)}
             />
           </GoogleOAuthProvider>
-        </Stack>
-
-        <Typography variant="body2">
-          {textForLink}
-          <Link
-            component={RouterLink}
-            to={linkTo}
-            underline="none"
-            sx={{ '&:hover': { color: 'primary.main' } }}
-          >
-            {linkName}
-          </Link>
-        </Typography>
+        )}
       </Stack>
     </Paper>
   );

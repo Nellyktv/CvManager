@@ -33,7 +33,7 @@ const PositionPage = () => {
   const { t } = useTranslation();
   const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
-  const role = useUserStore((state) => state.user.role);
+  const { id: userId, role } = useUserStore((state) => state.user);
   const [searchParams] = useSearchParams();
   const tag = searchParams.get('tag');
 
@@ -107,11 +107,8 @@ const PositionPage = () => {
   ];
 
   const handleSave = async () => {
-    if (editId) {
-      await updateItem(editId, form);
-    } else {
-      await createItem(form);
-    }
+    const saved = editId ? await updateItem(editId, form) : await createItem(form);
+    if (!saved) return;
 
     closeDialog();
     setSelectedIds([]);
@@ -167,7 +164,7 @@ const PositionPage = () => {
   const handleGenerateCv = async () => {
     try {
       const response = await api.post('/cv/create_resume', {
-        positionId: selectedIds[0],
+        positionId: Number(selectedIds[0]),
       });
 
       navigate(`/cv/${response.data.cv.id}`);
@@ -176,6 +173,10 @@ const PositionPage = () => {
       enqueueSnackbar(t('common.error'), { variant: 'error' });
     }
   };
+
+  const canManageSelection = role === 'ADMIN' || selectedIds.every((id) =>
+    positions.some((position) => position.id === id && (position.userId ?? position.userIdCreator) === userId),
+  );
 
   let visiblePositions = positions;
   if (tag) {
@@ -206,7 +207,7 @@ const PositionPage = () => {
       <Paper sx={{ p: 2, m: 1, borderRadius: '12px' }}>
         {(role === 'RECRUITER' || role === 'ADMIN') && (
           <CrudToolbar
-            selectedCount={selectedIds.length}
+            selectedCount={canManageSelection ? selectedIds.length : 0}
             onDelete={handleDelete}
             onEdit={handleEdit}
             onAdd={openCreate}

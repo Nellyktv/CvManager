@@ -14,7 +14,7 @@ const findByPk = vi.mocked(User.findByPk);
 const SECRET = 'test-secret';
 
 const requestWithToken = (payload: Partial<AuthUser>) =>
-    ({ headers: { authorization: `Bearer ${jwt.sign(payload, SECRET)}` } }) as Request;
+    ({ headers: { authorization: `Bearer ${jwt.sign({ ...payload, provider: 'google' }, SECRET, { expiresIn: '1h' })}` } }) as Request;
 
 const run = async (roles: UserRole[], req: Request) => {
     const next = vi.fn<(err?: unknown) => void>();
@@ -46,11 +46,11 @@ describe('checkRoleMiddleware', () => {
         expect(statusOf(next)).toBe(401);
     });
 
-    it('rejects a user whose role is not allowed', async () => {
-        const next = await run(['RECRUITER', 'ADMIN'], requestWithToken({ id: 1, role: 'CANDIDATE' }));
+    it('applies a demotion immediately to an existing token', async () => {
+        findByPk.mockResolvedValue({ id: 1, role: 'CANDIDATE', isActivated: true } as never);
+        const next = await run(['RECRUITER', 'ADMIN'], requestWithToken({ id: 1, role: 'ADMIN' }));
 
         expect(statusOf(next)).toBe(403);
-        expect(findByPk).not.toHaveBeenCalled();
     });
 
     it('rejects a blocked user even with an allowed role', async () => {
@@ -69,13 +69,38 @@ describe('checkRoleMiddleware', () => {
         expect(statusOf(next)).toBe(403);
     });
 
-    it('lets an allowed active user through and sets req.user', async () => {
-        findByPk.mockResolvedValue({ id: 2, isBlocked: false } as never);
-        const req = requestWithToken({ id: 2, email: 'r@demo.com', role: 'RECRUITER' });
+    it('rejects authenticated requests before email activation', async () => {
+        findByPk.mockResolvedValue({ id: 1, role: 'CANDIDATE', isActivated: false } as never);
+        const next = await run(['CANDIDATE'], requestWithToken({ id: 1, role: 'CANDIDATE' }));
+
+        expect(statusOf(next)).toBe(403);
+    });
+
+    it('rejects an otherwise signed token without a session expiry', async () => {
+        const req = {
+            headers: { authorization: `Bearer ${jwt.sign({ id: 1, provider: 'google' }, SECRET)}` },
+        } as Request;
+
+        expect(statusOf(await run(['CANDIDATE'], req))).toBe(401);
+        expect(findByPk).not.toHaveBeenCalled();
+    });
+
+    it('requires a new sign-in for sessions issued before Google-only authentication', async () => {
+        const req = {
+            headers: { authorization: `Bearer ${jwt.sign({ id: 1 }, SECRET, { expiresIn: '1h' })}` },
+        } as Request;
+
+        expect(statusOf(await run(['CANDIDATE'], req))).toBe(401);
+        expect(findByPk).not.toHaveBeenCalled();
+    });
+
+    it('uses the persisted role and email when the token has stale claims', async () => {
+        findByPk.mockResolvedValue({ id: 2, email: 'r@demo.com', role: 'RECRUITER', isActivated: true } as never);
+        const req = requestWithToken({ id: 2, email: 'old@demo.com', role: 'CANDIDATE' });
 
         const next = await run(['RECRUITER', 'ADMIN'], req);
 
         expect(next).toHaveBeenCalledWith();
-        expect(req.user).toMatchObject({ id: 2, role: 'RECRUITER' });
+        expect(req.user).toMatchObject({ id: 2, email: 'r@demo.com', role: 'RECRUITER' });
     });
 });

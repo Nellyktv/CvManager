@@ -8,7 +8,7 @@ import {
   Stack,
   CircularProgress,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useSnackbar } from 'notistack';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../api/axios.api';
@@ -31,12 +31,6 @@ export function SalesforceDialog({ open, onClose, onSuccess, defaultPhone }: Sal
     industry: '',
     additionalInfo: '',
   });
-
-  useEffect(() => {
-    if (open) {
-      setForm((prev) => ({ ...prev, phone: defaultPhone || prev.phone }));
-    }
-  }, [open, defaultPhone]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

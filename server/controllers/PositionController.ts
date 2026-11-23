@@ -1,15 +1,11 @@
+import sequelize from '../dB.js';
+import { createPositionBody, routeId, updatePositionBody } from '../schemas/requestSchemas.js';
+import type { AuthUser } from '../types/auth.js';
+import { getAuthUser, parseOrBadRequest } from '../utils/validation.js';
 import type { Request, Response } from 'express';
 import type { IdParams } from '../types/http.js';
 import { ApiError } from '../errors/ApiError.js';
 import { Position, Attribute, Cv, User, CandidateSkills, setPositionAttributes } from '../models/models.js';
-
-interface PositionBody {
-  title?: string;
-  description?: string | null;
-  userIdCreator?: number | null;
-  attributeIds?: number[];
-  allowedCandidateIds?: number[];
-}
 
 interface DashboardTag {
   id: number;
@@ -17,34 +13,45 @@ interface DashboardTag {
   count: number;
 }
 
+const canReadPosition = (position: Position, user: AuthUser | undefined) => {
+  const allowed = position.allowedCandidates ?? [];
+  return allowed.length === 0 || user?.role === 'ADMIN' || user?.role === 'RECRUITER' ||
+    allowed.some((candidate) => candidate.id === user?.id);
+};
+
+const toVisiblePosition = (position: Position, user: AuthUser | undefined) => ({
+  ...position.toJSON(),
+  allowedCandidates: user?.role === 'ADMIN' || user?.role === 'RECRUITER'
+    ? position.allowedCandidates
+    : undefined,
+});
+
+const assertCanManagePosition = (position: Position, user: AuthUser) => {
+  if (user.role !== 'ADMIN' && (position.userId ?? position.userIdCreator) !== user.id) {
+    throw ApiError.forbidden('Only the position owner can manage this position');
+  }
+};
+
 const createPosition = async (req: Request, res: Response) => {
-  const {
-    title,
-    description,
-    userIdCreator,
-    attributeIds,
-    allowedCandidateIds,
-  }: PositionBody = req.body;
+  const { id: userId } = getAuthUser(req);
+  const { title, description, attributeIds, allowedCandidateIds } =
+    parseOrBadRequest(createPositionBody.parse, req.body);
 
-  const position = await Position.create({
-    title: title as string,
-    description: description ?? null,
-    userIdCreator: userIdCreator ?? null,
+  const position = await sequelize.transaction(async (transaction) => {
+    const created = await Position.create({
+      title, description: description ?? null, userId, userIdCreator: userId,
+    }, { transaction });
+
+    if (attributeIds?.length) await setPositionAttributes(created, attributeIds, transaction);
+    if (allowedCandidateIds?.length) await created.setAllowedCandidates(allowedCandidateIds, { transaction });
+    return created;
   });
-
-  if (attributeIds && attributeIds.length) {
-    await setPositionAttributes(position, attributeIds);
-  }
-
-  if (allowedCandidateIds && allowedCandidateIds.length) {
-    await position.setAllowedCandidates(allowedCandidateIds);
-  }
 
   return res.json({ position });
 };
 
 const getPosition = async (req: Request<IdParams>, res: Response) => {
-  const { id } = req.params;
+  const id = parseOrBadRequest(routeId.parse, req.params.id);
 
   const position = await Position.findByPk(id, {
     include: [
@@ -60,60 +67,43 @@ const getPosition = async (req: Request<IdParams>, res: Response) => {
     ],
   });
 
-  if (!position) {
+  if (!position || !canReadPosition(position, req.user)) {
     throw ApiError.notFound('Position not found');
   }
 
-  return res.json({ position });
+  return res.json({ position: toVisiblePosition(position, req.user) });
 };
 
 const updatePosition = async (req: Request<IdParams>, res: Response) => {
-  const { id } = req.params;
-  const {
-    title,
-    description,
-    attributeIds,
-    allowedCandidateIds,
-  }: PositionBody = req.body;
+  const id = parseOrBadRequest(routeId.parse, req.params.id);
+  const user = getAuthUser(req);
+  const { title, description, attributeIds, allowedCandidateIds } =
+    parseOrBadRequest(updatePositionBody.parse, req.body);
 
-  const position = await Position.findByPk(id);
+  await sequelize.transaction(async (transaction) => {
+    const position = await Position.findByPk(id, { transaction, lock: true });
+    if (!position) throw ApiError.notFound('Position not found');
+    assertCanManagePosition(position, user);
 
-  if (!position) {
-    throw ApiError.notFound('Position not found');
-  }
-
-  await position.update({
-    title,
-    description,
+    await position.update({ title, description }, { transaction });
+    if (attributeIds) await setPositionAttributes(position, attributeIds, transaction);
+    if (allowedCandidateIds) await position.setAllowedCandidates(allowedCandidateIds, { transaction });
   });
 
-  if (attributeIds && attributeIds.length) {
-    await setPositionAttributes(position, attributeIds);
-  }
-
-  if (allowedCandidateIds) {
-    await position.setAllowedCandidates(allowedCandidateIds);
-  }
-
-  return res.json({
-    message: 'Position updated',
-  });
+  return res.json({ message: 'Position updated' });
 };
 
 const deletePosition = async (req: Request<IdParams>, res: Response) => {
-  const { id } = req.params;
-
-  const deletedRows = await Position.destroy({
-    where: { id: Number(id) },
+  const id = parseOrBadRequest(routeId.parse, req.params.id);
+  const user = getAuthUser(req);
+  await sequelize.transaction(async (transaction) => {
+    const position = await Position.findByPk(id, { transaction, lock: true });
+    if (!position) throw ApiError.notFound('Position not found');
+    assertCanManagePosition(position, user);
+    await position.destroy({ transaction });
   });
 
-  if (!deletedRows) {
-    throw ApiError.notFound('Position not found');
-  }
-
-  return res.json({
-    message: 'Position deleted',
-  });
+  return res.json({ message: 'Position deleted' });
 };
 
 const getAllPositions = async (req: Request, res: Response) => {
@@ -131,46 +121,25 @@ const getAllPositions = async (req: Request, res: Response) => {
     ],
   });
 
-  if (!req.user || req.user.role !== 'CANDIDATE') {
-    return res.json({ allPositions: positions });
-  }
-
-  const visiblePositions: Position[] = [];
-
-  for (const position of positions) {
-    const allowedCandidates = position.allowedCandidates ?? [];
-    const isRestricted = allowedCandidates.length > 0;
-
-    let hasAccess = false;
-    for (const candidate of allowedCandidates) {
-      if (candidate.id === req.user.id) {
-        hasAccess = true;
-      }
-    }
-
-    if (!isRestricted || hasAccess) {
-      visiblePositions.push(position);
-    }
-  }
-
-  return res.json({
-    allPositions: visiblePositions,
-  });
+  const visible = positions.filter((position) => canReadPosition(position, req.user));
+  return res.json({ allPositions: visible.map((position) => toVisiblePosition(position, req.user)) });
 };
 
-const getDashboardStats = async (_req: Request, res: Response) => {
-  const positionsCount = await Position.count();
-  const cvsCount = await Cv.count();
+const getDashboardStats = async (req: Request, res: Response) => {
   const candidatesCount = await User.count({ where: { role: 'CANDIDATE' } });
   const recruitersCount = await User.count({ where: { role: 'RECRUITER' } });
 
-  const positions = await Position.findAll({
+  const positions = (await Position.findAll({
     attributes: ['id', 'title', 'updatedAt'],
-  });
+    include: [{ model: User, as: 'allowedCandidates', attributes: ['id'] }],
+  })).filter((position) => canReadPosition(position, req.user));
+  const positionsCount = positions.length;
 
   const allCvs = await Cv.findAll({
     attributes: ['positionId'],
+    where: { positionId: positions.map((position) => position.id), status: 'published' },
   });
+  const cvsCount = allCvs.length;
 
   const countByPositionId: Record<number, number> = {};
   for (const cv of allCvs) {

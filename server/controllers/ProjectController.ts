@@ -1,3 +1,4 @@
+import { routeId } from '../schemas/requestSchemas.js';
 import type { Request, Response } from 'express';
 import type { IdParams } from '../types/http.js';
 import type { InferAttributes } from 'sequelize';
@@ -42,7 +43,7 @@ const createProject = async (req: Request, res: Response) => {
 
 const updateProject = async (req: Request<IdParams>, res: Response) => {
   const user = getAuthUser(req);
-  const { id } = req.params;
+  const id = parseOrBadRequest(routeId.parse, req.params.id);
   const data = parseOrBadRequest(validateProjectUpdate, req.body);
 
   const project = await Project.findByPk(id);
@@ -75,7 +76,7 @@ const updateProject = async (req: Request<IdParams>, res: Response) => {
 
 const deleteProject = async (req: Request<IdParams>, res: Response) => {
   const user = getAuthUser(req);
-  const { id } = req.params;
+  const id = parseOrBadRequest(routeId.parse, req.params.id);
 
   const project = await Project.findByPk(id);
 

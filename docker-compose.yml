@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: cv_manager
       POSTGRES_PASSWORD: cv_manager
     ports:
-      - "5437:5432"
+      - "127.0.0.1:5437:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
@@ -20,9 +20,8 @@ services:
       context: .
       args:
         VITE_API_URL: /api
-        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-}
     ports:
-      - "${APP_PORT:-4300}:4200"
+      - "127.0.0.1:${APP_PORT:-4300}:4200"
     env_file:
       - path: server/.env
         required: false
@@ -33,7 +32,7 @@ services:
       DB_USER: cv_manager
       DB_PASSWORD: cv_manager
       PORT: 4200
-      SECRET_KEY_ROLE: ${SECRET_KEY_ROLE:-local-dev-secret-change-me}
+      SECRET_KEY_ROLE: ${SECRET_KEY_ROLE:-}
       API_URL: http://localhost:${APP_PORT:-4300}
       CLIENT_URL: http://localhost:${APP_PORT:-4300}
     depends_on:

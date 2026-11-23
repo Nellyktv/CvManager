@@ -1,26 +1,14 @@
+import { salesforceSyncBody } from '../../schemas/requestSchemas.js';
 import type { NextFunction, Request, Response } from 'express';
 import salesforceService from './salesforceService.js';
 import { User } from '../../models/models.js';
 import { ApiError } from '../../errors/ApiError.js';
-import { getAuthUser } from '../../utils/validation.js';
-
-interface SalesforceSyncBody {
-  companyName?: string;
-  phone?: string;
-  website?: string;
-  industry?: string;
-  additionalInfo?: string;
-}
+import { getAuthUser, parseOrBadRequest } from '../../utils/validation.js';
 
 const syncUserToSalesforce = async (req: Request, res: Response, next: NextFunction) => {
+  const { companyName, phone, website, industry, additionalInfo } = parseOrBadRequest(salesforceSyncBody.parse, req.body);
   try {
     const userId = getAuthUser(req).id;
-    const { companyName, phone, website, industry, additionalInfo }: SalesforceSyncBody = req.body;
-
-    if (!companyName || !phone) {
-      return next(ApiError.badRequest('Company name and phone are required'));
-    }
-
     const user = await User.findByPk(userId);
     if (!user) {
       return next(ApiError.notFound('User not found'));
@@ -50,7 +38,7 @@ const syncUserToSalesforce = async (req: Request, res: Response, next: NextFunct
       salesforceContactId: sfData.contactId,
     });
   } catch (error) {
-    console.error('Salesforce sync failed:', error);
+    console.error('Salesforce sync failed', error instanceof Error ? error.name : 'Unknown error');
     return next(ApiError.internal('An error occurred, please try again later'));
   }
 };

@@ -1,21 +1,12 @@
+import { createAttributeBody, routeId, updateAttributeBody } from '../schemas/requestSchemas.js';
+import { parseOrBadRequest } from '../utils/validation.js';
 import type { Request, Response } from 'express';
 import type { IdParams } from '../types/http.js';
 import { ApiError } from '../errors/ApiError.js';
 import { Attribute } from '../models/models.js';
 
-interface AttributeBody {
-    name?: string;
-    description?: string | null;
-    type?: string;
-    options?: string | null;
-}
-
 const createAttribute = async (req: Request, res: Response) => {
-    const { name, description, type, options }: AttributeBody = req.body;
-
-    if (!name || !type) {
-        throw ApiError.badRequest('Name and type are required');
-    }
+    const { name, description, type, options }= parseOrBadRequest(createAttributeBody.parse, req.body);
 
     const existingAttribute = await Attribute.findOne({
         where: { name },
@@ -46,7 +37,7 @@ const getAllAttributes = async (_req: Request, res: Response) => {
 };
 
 const getAttribute = async (req: Request<IdParams>, res: Response) => {
-    const { id } = req.params;
+    const id = parseOrBadRequest(routeId.parse, req.params.id);
 
     const attribute = await Attribute.findByPk(id);
 
@@ -60,8 +51,8 @@ const getAttribute = async (req: Request<IdParams>, res: Response) => {
 };
 
 const updateAttribute = async (req: Request<IdParams>, res: Response) => {
-    const { id } = req.params;
-    const { name, description, type, options }: AttributeBody = req.body;
+    const id = parseOrBadRequest(routeId.parse, req.params.id);
+    const { name, description, type, options }= parseOrBadRequest(updateAttributeBody.parse, req.body);
 
     const attribute = await Attribute.findByPk(id);
 
@@ -82,7 +73,7 @@ const updateAttribute = async (req: Request<IdParams>, res: Response) => {
 };
 
 const deleteAttribute = async (req: Request<IdParams>, res: Response) => {
-    const { id } = req.params;
+    const id = parseOrBadRequest(routeId.parse, req.params.id);
 
     const attribute = await Attribute.findByPk(id);
 

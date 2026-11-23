@@ -1,7 +1,7 @@
+import { routeId, saveSkillBody } from '../schemas/requestSchemas.js';
 import type { Request, Response } from 'express';
-import { ApiError } from '../errors/ApiError.js';
 import { CandidateSkills, Attribute } from '../models/models.js';
-import { getAuthUser } from '../utils/validation.js';
+import { getAuthUser, parseOrBadRequest } from '../utils/validation.js';
 
 const getMySkills = async (req: Request, res: Response) => {
     const user = getAuthUser(req);
@@ -17,11 +17,7 @@ const getMySkills = async (req: Request, res: Response) => {
 
 const saveSkill = async (req: Request, res: Response) => {
     const user = getAuthUser(req);
-    const { attributeId, value }: { attributeId?: number; value?: string | null } = req.body;
-
-    if (!attributeId) {
-        throw ApiError.badRequest('attributeId is required');
-    }
+    const { attributeId, value } = parseOrBadRequest(saveSkillBody.parse, req.body);
 
     const candidateSkill = await CandidateSkills.findOne({
         where: {
@@ -53,12 +49,12 @@ const saveSkill = async (req: Request, res: Response) => {
 
 const deleteSkill = async (req: Request<{ attributeId: string }>, res: Response) => {
     const user = getAuthUser(req);
-    const { attributeId } = req.params;
+    const attributeId = parseOrBadRequest(routeId.parse, req.params.attributeId);
 
     await CandidateSkills.destroy({
         where: {
             userId: user.id,
-            attributeId: Number(attributeId),
+            attributeId,
         },
     });
 

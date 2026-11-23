@@ -11,9 +11,7 @@ RUN npm ci --prefix server
 COPY . .
 
 ARG VITE_API_URL=/api
-ARG VITE_GOOGLE_CLIENT_ID=
 ENV VITE_API_URL=$VITE_API_URL
-ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
 RUN npm run build && npm run build --prefix server \
     && npm prune --omit=dev && npm prune --prefix server --omit=dev
 

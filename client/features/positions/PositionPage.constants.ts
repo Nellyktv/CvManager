@@ -13,6 +13,8 @@ export type Position = {
   title: string;
   description: string;
   updatedAt: string;
+  userId?: number | null;
+  userIdCreator?: number | null;
   attributes?: Attribute[];
   allowedCandidates?: AllowedCandidate[];
 };

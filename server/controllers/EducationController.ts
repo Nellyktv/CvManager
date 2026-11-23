@@ -1,3 +1,4 @@
+import { routeId } from '../schemas/requestSchemas.js';
 import type { Request, Response } from 'express';
 import type { IdParams } from '../types/http.js';
 import { ApiError } from '../errors/ApiError.js';
@@ -36,7 +37,7 @@ const createEducation = async (req: Request, res: Response) => {
 const updateEducation = async (req: Request<IdParams>, res: Response) => {
   const user = getAuthUser(req);
   const data = parseOrBadRequest(validateEducationUpdate, req.body);
-  const education = await Education.findByPk(req.params.id);
+  const education = await Education.findByPk(parseOrBadRequest(routeId.parse, req.params.id));
 
   if (!education) {
     throw ApiError.notFound('Education not found');
@@ -55,7 +56,7 @@ const updateEducation = async (req: Request<IdParams>, res: Response) => {
 
 const deleteEducation = async (req: Request<IdParams>, res: Response) => {
   const user = getAuthUser(req);
-  const education = await Education.findByPk(req.params.id);
+  const education = await Education.findByPk(parseOrBadRequest(routeId.parse, req.params.id));
 
   if (!education) {
     throw ApiError.notFound('Education not found');

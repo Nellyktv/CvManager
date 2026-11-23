@@ -59,11 +59,23 @@ it.skipIf(process.env.CV_SEED_INTEGRATION !== '1')(
                         (SELECT count(*)::int FROM cvs) AS cvs,
                         (SELECT count(*)::int FROM cvs WHERE status = 'draft') AS drafts,
                         (SELECT count(*)::int FROM cvs WHERE content->'contact'->>'name' <> '') AS snapshots,
+                        (SELECT count(*)::int FROM position_accesses) AS invitations,
+                        (SELECT count(*)::int FROM cvs JOIN positions ON positions.id = cvs."positionId"
+                            WHERE positions.title = 'Frontend Developer' AND cvs.status = 'published') AS frontend_published,
+                        (SELECT count(*)::int FROM cvs JOIN positions ON positions.id = cvs."positionId"
+                            WHERE positions.title = 'Technical Writer' AND cvs.status = 'draft') AS writer_drafts,
+                        (SELECT count(*)::int FROM cvs JOIN positions ON positions.id = cvs."positionId"
+                            WHERE positions.title = 'Platform Engineer') AS platform_cvs,
+                        (SELECT count(*)::int FROM cvs JOIN positions ON positions.id = cvs."positionId"
+                            WHERE positions.title = 'Senior React Engineer' AND cvs.status = 'published') AS react_cvs,
+                        (SELECT count(*)::int FROM cvs JOIN positions ON positions.id = cvs."positionId"
+                            WHERE positions.title = 'Node.js API Engineer' AND cvs.status = 'published') AS api_cvs,
                         (SELECT "firstName" FROM users WHERE email = 'admin@demo.com') AS admin_name
                 `);
                 expect(rows).toEqual([{
-                    users: 5, positions: 4, profiles: 3, cvs: 5, drafts: 2,
-                    snapshots: 5, admin_name: 'Existing',
+                    users: 9, positions: 15, profiles: 7, cvs: 20, drafts: 6,
+                    snapshots: 20, invitations: 2, frontend_published: 2, writer_drafts: 1,
+                    platform_cvs: 0, react_cvs: 2, api_cvs: 1, admin_name: 'Existing',
                 }]);
             } finally {
                 await db.close();

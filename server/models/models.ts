@@ -26,6 +26,7 @@ class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
     declare password: CreationOptional<string | null>;
     declare isActivated: CreationOptional<boolean>;
     declare isBlocked: CreationOptional<boolean>;
+    declare googleSubject: CreationOptional<string | null>;
     declare activationLink: CreationOptional<string | null>;
     declare role: CreationOptional<UserRole>;
     declare salesforceAccountId: CreationOptional<string | null>;
@@ -42,6 +43,7 @@ User.init({
     password: { type: DataTypes.STRING },
     isActivated: { type: DataTypes.BOOLEAN, defaultValue: false },
     isBlocked: { type: DataTypes.BOOLEAN, defaultValue: false },
+    googleSubject: { type: DataTypes.STRING, unique: true, allowNull: true },
     activationLink: { type: DataTypes.STRING },
     role: {
         type: DataTypes.ENUM("CANDIDATE", "RECRUITER", "ADMIN"),

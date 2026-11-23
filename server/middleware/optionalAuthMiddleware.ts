@@ -1,29 +1,9 @@
 import type { RequestHandler } from 'express';
-import { User } from '../models/models.js';
-import { getBearerToken, verifyToken } from './verifyToken.js';
+import authMiddleware from './checkAuthMiddleware.js';
 
-
-const optionalAuthMiddleware: RequestHandler = async (req, _res, next) => {
-
-    try {
-        const token = getBearerToken(req);
-        if (!token) {
-            return next();
-        }
-        const userData = verifyToken(token);
-
-        const user = await User.findByPk(userData.id)
-
-        if (!user || user.isBlocked) {
-            return next();
-        }
-
-        req.user = userData;
-        next();
-
-    } catch {
-        next();
-    }
-
+const optionalAuthMiddleware: RequestHandler = (req, res, next) => {
+    if (req.headers.authorization === undefined) return next();
+    return authMiddleware(req, res, next);
 };
+
 export default optionalAuthMiddleware;

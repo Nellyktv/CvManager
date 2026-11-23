@@ -6,15 +6,23 @@ A full-stack web app for building and managing CVs. Candidates keep one profile 
 
 ![CV editor with live preview](docs/screenshots/cv-editor.png)
 
-## Demo accounts
+## Demo walkthrough
 
-| Role | Email | Password | What to try |
-|---|---|---|---|
-| Candidate | `candidate@demo.com` | `Demo1234!` | Edit the profile, open a CV, switch templates, download the PDF |
-| Recruiter | `recruiter@demo.com` | `Demo1234!` | Browse the dashboard, manage positions, review published CVs |
-| Admin | `admin@demo.com` | `Demo1234!` | Manage users: assign roles, block and unblock accounts |
+Sign in with your Google account. To try the recruiter view, the instance operator runs the following command after your first sign-in:
 
-The demo runs on a free plan, so the first page load after a pause can take about a minute.
+```bash
+npm --prefix server run set-role -- your-google-address@example.com RECRUITER
+```
+
+In Docker, run the same command via `docker compose exec app`. Sign in again to refresh the role displayed in the interface. Demo email addresses are fixtures for candidate and position records.
+
+The seed provides 15 positions, 15 published CVs and 5 drafts. In **Positions** and **Search CVs**, try:
+
+- Compare the two **Senior React Engineer** submissions in different templates. Search for **React**, **Storybook** or **Web Performance** to review frontend candidates.
+- Open **Node.js API Engineer**, **Backend Integrations Engineer** and **Backend Data Engineer**. Search for **API Design**, **Redis** or **PostgreSQL** to review backend candidates.
+- **QA Automation Engineer** is invitation-only and has one published CV and one candidate draft.
+- **Technical Writer** has only a draft. **Platform Engineer** has no submissions. Duplicate **Platform Engineer** to practice creating, editing and deleting a position you own.
+- Open a published CV to preview it and download a PDF.
 
 ## Highlights
 
@@ -73,10 +81,10 @@ The demo runs on a free plan, so the first page load after a pause can take abou
 
 ## Authentication
 
-- **Email and password.** After sign-up the user receives an email with an activation link. Passwords are hashed with bcrypt.
-- **Sign in with Google.** The server verifies the Google token. If no user has this email yet, a candidate account is created and activated automatically.
-- Sessions use a JWT that is valid for 24 hours. Blocked users cannot sign in.
-- Roles: `CANDIDATE`, `RECRUITER`, `ADMIN`. The API checks the role on every protected route.
+- Google is the sign-in provider. The API verifies the credential against `GOOGLE_CLIENT_ID` and uses the Google account ID for subsequent sessions. Sign-in supports verified Gmail and Google Workspace addresses.
+- Configure a [Google OAuth web client](https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid) and allow the app's origin under **Authorized JavaScript origins**. For the Docker default, use `http://localhost` and `http://localhost:4300`. For Vite development, add `http://localhost:5173`.
+- Set `GOOGLE_CLIENT_ID` in `server/.env` or the deployed server environment. The browser reads the public client ID from the API at runtime.
+- Sessions use a JWT that is valid for 24 hours. Roles are `CANDIDATE`, `RECRUITER` and `ADMIN`. New Google users start as candidates.
 
 ## CV templates
 
@@ -94,7 +102,7 @@ Project descriptions support **bold**, *italic*, unordered lists and links. Raw 
 | | |
 |---|---|
 | **Frontend** | React 19, TypeScript, Vite, MUI, React Router, Zustand, React Hook Form + Zod, i18next, @react-pdf/renderer |
-| **Backend** | Node.js, TypeScript, Express 5, Sequelize, PostgreSQL, Zod, JWT, bcrypt, Nodemailer, Google OAuth |
+| **Backend** | Node.js, TypeScript, Express 5, Sequelize, PostgreSQL, Zod, JWT, Google OAuth |
 | **Integrations** | Salesforce (jsforce), Dropbox |
 | **Tooling** | Vitest, Testing Library, ESLint, Docker Compose |
 
@@ -112,15 +120,16 @@ In production the Express server also serves the built frontend from `dist/`, so
 ### Quick start with Docker
 
 ```bash
+export SECRET_KEY_ROLE="$(openssl rand -hex 32)"
 docker compose up -d --build
 docker compose exec app npm --prefix server run seed:demo
 ```
 
-The app runs on http://localhost:4300 with its own PostgreSQL container. The second command fills the database with the demo accounts above, positions and CVs. To use another port, set `APP_PORT`, for example `APP_PORT=5000 docker compose up -d`. Optional settings (SMTP, Google, Salesforce) are read from `server/.env` if the file exists.
+The app runs on http://localhost:4300 with its own PostgreSQL container. The seed command fills the database with mock candidate profiles, positions and CVs. To use another port, set `APP_PORT`, for example `APP_PORT=5000 docker compose up -d`. Google and optional integration settings are read from `server/.env`.
 
 ### Requirements
 
-- Node.js 20+
+- Node.js 22.19 or newer
 - PostgreSQL
 
 ### Install
@@ -142,11 +151,10 @@ cp server/.env.example server/.env
 | Variable | Where | Purpose |
 |---|---|---|
 | `VITE_API_URL` | `.env` | API base URL (`/api` when the server serves the frontend) |
-| `VITE_GOOGLE_CLIENT_ID` | `.env` | Google sign-in on the client |
 | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | `server/.env` | PostgreSQL connection |
-| `SECRET_KEY_ROLE` | `server/.env` | JWT signing key |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` | `server/.env` | Activation emails |
-| `API_URL`, `CLIENT_URL` | `server/.env` | Public URLs used in email links |
+| `SECRET_KEY_ROLE` | `server/.env` | JWT signing key. Generate with `openssl rand -hex 32` |
+| `TRUSTED_PROXIES` | `server/.env` | Trusted reverse proxy IP addresses or CIDR ranges, comma-separated |
+| `API_URL`, `CLIENT_URL` | `server/.env` | Public API URL and browser CORS origin |
 | `GOOGLE_CLIENT_ID` | `server/.env` | Google token verification |
 | `SF_CLIENT_ID`, `SF_CLIENT_SECRET` | `server/.env` | Salesforce integration (optional) |
 | `DROPBOX_ACCESS_TOKEN` | `server/.env` | Support tickets (optional) |

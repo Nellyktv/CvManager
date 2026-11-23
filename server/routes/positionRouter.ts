@@ -6,8 +6,8 @@ import optionalAuthMiddleware from '../middleware/optionalAuthMiddleware.js';
 export const positionRouter = Router();
 
 positionRouter.get('/', optionalAuthMiddleware, PositionController.getAllPositions);
-positionRouter.get('/dashboard', PositionController.getDashboardStats);
-positionRouter.get('/:id', PositionController.getPosition);
+positionRouter.get('/dashboard', optionalAuthMiddleware, PositionController.getDashboardStats);
+positionRouter.get('/:id', optionalAuthMiddleware, PositionController.getPosition);
 
 
 positionRouter.post('/', checkRoleMiddleware(['RECRUITER', 'ADMIN']), PositionController.createPosition);

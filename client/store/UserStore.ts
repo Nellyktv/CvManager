@@ -14,6 +14,7 @@ interface JwtPayload {
   email: string;
   role: UserRole;
   exp: number;
+  provider: 'google';
 }
 
 const emptyUser: User = { id: 0, email: '', role: '' };
@@ -25,7 +26,7 @@ const getInitialAuth = () => {
     }
     try {
         const decoded = jwtDecode<JwtPayload>(token);
-        if (decoded.exp * 1000 < Date.now()) {
+        if (decoded.provider !== 'google' || !Number.isFinite(decoded.exp) || decoded.exp * 1000 <= Date.now()) {
             localStorage.removeItem("token");
             return { token: null, isAuth: false, user: emptyUser };
         }

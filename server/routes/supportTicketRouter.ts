@@ -1,7 +1,8 @@
+import { integrationLimiter } from '../middleware/rateLimits.js';
 import { Router } from 'express';
 import powerAutomateController from '../integrations/powerAutomate/powerAutomateController.js';
 import authMiddleware from '../middleware/checkAuthMiddleware.js';
 
 export const supportTicketRouter = Router();
 
-supportTicketRouter.post('/', authMiddleware, powerAutomateController.createSupportTicket);
+supportTicketRouter.post('/', authMiddleware, integrationLimiter(), powerAutomateController.createSupportTicket);

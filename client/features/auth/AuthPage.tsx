@@ -4,16 +4,11 @@ import { Link as RouterLink } from 'react-router';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import LoginForm from './LoginForm';
-import SignupForm from './SignupForm';
 import { useThemeStore } from '../../store/ThemeStore';
 import { brandGradient } from '../../theme';
-import { LOGIN_ROUTE, PUBLIC_ROUTE, REGISTER_ROUTE } from '../../shared/utils/constsLinks';
+import { PUBLIC_ROUTE } from '../../shared/utils/constsLinks';
 
-type AuthPageProps = {
-  loginPage?: boolean;
-};
-
-const AuthPage = ({ loginPage }: AuthPageProps) => {
+const AuthPage = () => {
   const { t, i18n } = useTranslation();
   const mode = useThemeStore((state) => state.theme);
   const toggleMode = useThemeStore((state) => state.toggleTheme);
@@ -79,23 +74,7 @@ const AuthPage = ({ loginPage }: AuthPageProps) => {
         </IconButton>
       </Stack>
 
-      {loginPage ? (
-        <LoginForm
-          title={t('auth.loginTitle')}
-          btnName={t('auth.signIn')}
-          textForLink={t('auth.noAccount')}
-          linkName={t('auth.register')}
-          linkTo={REGISTER_ROUTE}
-        />
-      ) : (
-        <SignupForm
-          title={t('auth.signupTitle')}
-          btnName={t('auth.signUp')}
-          textForLink={t('auth.haveAccount')}
-          linkName={t('auth.login')}
-          linkTo={LOGIN_ROUTE}
-        />
-      )}
+      <LoginForm />
     </Stack>
   );
 };

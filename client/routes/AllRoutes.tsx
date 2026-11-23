@@ -1,3 +1,4 @@
+import { Navigate } from 'react-router';
 import AdminPage from '../features/admin/AdminPage';
 import AuthPage from '../features/auth/AuthPage';
 import AttributesPage from '../features/attributes/AttributesPage';
@@ -22,12 +23,10 @@ import {
   SETTINGS_ROUTE,
   POSITION_ROUTE,
 } from '../shared/utils/constsLinks';
-const loginPage = true;
-
 
 export const authPages = [
-  { path: LOGIN_ROUTE, componentForRole: <AuthPage loginPage={loginPage} /> },
-  { path: REGISTER_ROUTE, componentForRole: <AuthPage /> },
+  { path: LOGIN_ROUTE, componentForRole: <AuthPage /> },
+  { path: REGISTER_ROUTE, componentForRole: <Navigate to={LOGIN_ROUTE} replace /> },
 ];
 
 export const publicRoutes = [

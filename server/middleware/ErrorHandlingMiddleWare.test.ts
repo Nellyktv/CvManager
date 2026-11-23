@@ -37,6 +37,17 @@ describe('errorHandler', () => {
         expect(res.json).toHaveBeenCalledWith({ message: 'An unexpected error occurred' });
     });
 
+    it.each([
+        ['entity.parse.failed', 400, 'Invalid JSON'],
+        ['entity.too.large', 413, 'Request body is too large'],
+    ])('handles %s with a fixed response', (type, status, message) => {
+        const res = createRes();
+        handle({ type, body: 'private request values' }, res);
+
+        expect(res.status).toHaveBeenCalledWith(status);
+        expect(res.json).toHaveBeenCalledWith({ message });
+    });
+
     it('passes the error on when the response was already sent', () => {
         const res = createRes(true);
         const next = vi.fn<(err?: unknown) => void>();

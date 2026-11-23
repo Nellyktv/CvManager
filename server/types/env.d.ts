@@ -8,10 +8,6 @@ declare global {
             DB_HOST?: string;
             DB_PORT?: string;
             SECRET_KEY_ROLE?: string;
-            SMTP_HOST?: string;
-            SMTP_PORT?: string;
-            SMTP_USER?: string;
-            SMTP_PASSWORD?: string;
             API_URL?: string;
             CLIENT_URL?: string;
             GOOGLE_CLIENT_ID?: string;
