@@ -60,10 +60,14 @@ const start = async () => {
     }
     await sequelize.authenticate();
     await sequelize.sync({ alter: true });
-    if (process.env.RENDER_EXTERNAL_HOSTNAME === 'cvmanager-ousk.onrender.com') {
-        await ensureDemo();
-    }
-    const server = app.listen(PORT, HOST, () => console.log(`Server started on PORT ${PORT}`));
+    const server = app.listen(PORT, HOST, () => {
+        console.log(`Server started on PORT ${PORT}`);
+        if (process.env.RENDER_EXTERNAL_HOSTNAME === 'cvmanager-ousk.onrender.com') {
+            void ensureDemo().catch((error: unknown) => {
+                console.error('Demo seed failed:', error instanceof Error ? error.message : 'Unknown error');
+            });
+        }
+    });
     server.on('error', (error) => {
         console.error(error.message);
         process.exitCode = 1;
